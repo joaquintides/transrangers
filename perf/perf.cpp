@@ -17,7 +17,7 @@
 #include <range/v3/view/filter.hpp>
 #include <range/v3/view/take.hpp>
 #include <range/v3/view/transform.hpp>
-#include <transrangers.cpp>
+#include <transrangers.hpp>
 #include <vector>
 
 auto rng=[]{
