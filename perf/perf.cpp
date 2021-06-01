@@ -20,6 +20,15 @@
 #include <transrangers.hpp>
 #include <vector>
 
+#ifdef _WIN32
+#pragma comment ( lib, "Shlwapi.lib" )
+#ifdef _DEBUG
+#pragma comment ( lib, "benchmarkd.lib" )
+#else
+#pragma comment ( lib, "benchmark.lib" )
+#endif
+#endif
+
 auto rng=[]{
   std::vector<int> rng(1000000);
   std::iota(rng.begin(),rng.end(),0);
