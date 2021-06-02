@@ -1,0 +1,151 @@
+name: benchmarks
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+      - master
+      - develop
+      - gha**
+
+jobs:
+  posix:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: g++-11
+            compileroptions: -std=c++2a -fconcepts -lbenchmark -lpthread -O3 -DNDEBUG
+            sourcefile: perf/perf.cpp
+            outputfile: Perf
+            os: ubuntu-20.04
+            install: g++-11
+          - compiler: clang++
+            compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
+            sourcefile: perf/perf.cpp
+            outputfile: Perf
+            os: ubuntu-20.04
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install packages
+        if: matrix.install
+        run: |
+          sudo -E apt-add-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt install -y ${{matrix.install}}
+      - name: Install google/benchmark
+        run: |
+          mkdir -p /opt/github
+          cd /opt/github
+          git clone https://github.com/google/benchmark.git
+          git clone https://github.com/google/googletest.git benchmark/googletest
+          cd benchmark
+          cmake -E make_directory "build"
+          cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
+          # or, starting with CMake 3.13, use a simpler form:
+          # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
+          # Can these steps be skipped?
+          # # Build the library.
+          # cmake --build "build" --config Release
+          # # run the tests to check the build.
+          # cmake -E chdir "build" ctest --build-config Release
+
+          # install the library globally
+          sudo cmake --build "build" --config Release --target install
+
+      - name: Install range-v3
+        run: |
+          mkdir -p /opt/github
+          cd /opt/github
+          git clone https://github.com/ericniebler/range-v3.git
+          cd range-v3/include
+          sudo cp -rp * /usr/local/include/
+
+      - name: Install transrangers
+        run: |
+          cd $GITHUB_WORKSPACE
+          sudo cp include/transrangers.hpp /usr/local/include/
+
+      - name: Compile
+        run: |
+          cd $GITHUB_WORKSPACE
+          ${{matrix.compiler}} --version
+          ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}} -o ${{matrix.outputfile}}
+
+      - name: Run tests
+        run: |
+          ./${{matrix.outputfile}}
+
+  windows:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - compiler: cl
+            compileroptions: /std:c++latest /O2 /D "NDEBUG" /EHsc /MD
+            sourcefile: perf/perf.cpp
+            outputfile: perf.exe
+            os: windows-2019
+
+    runs-on: ${{matrix.os}}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install google/benchmark
+        shell: powershell
+        run: |
+          if ( -Not (Test-Path -Path "C:\opt\github") )
+          {
+            mkdir -p C:\opt\github
+          }
+          cd C:\opt\github
+          git clone https://github.com/google/benchmark.git
+          # Benchmark requires Google Test as a dependency. Add the source tree as a subdirectory.
+          git clone https://github.com/google/googletest.git benchmark/googletest
+          # Go to the library root directory
+          cd benchmark
+          # Make a build directory to place the build output.
+          cmake -E make_directory "build"
+          # Generate build system files with cmake.
+          cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
+          # # or, starting with CMake 3.13, use a simpler form:
+          # # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
+          # # Build the library.
+          # cmake --build "build" --config Release
+          # # run the tests to check the build.
+          # cmake -E chdir "build" ctest --build-config Release
+          # install the library globally
+          cmake --build "build" --config Release --target install
+
+      - name: Install range-v3
+        shell: powershell
+        run: |
+          if ( -Not (Test-Path -Path "C:\opt\github") )
+          {
+            mkdir -p C:\opt\github
+          }
+          cd C:\opt\github
+          git clone https://github.com/ericniebler/range-v3.git
+
+      - name: Compile
+        shell: cmd
+        run: |
+          cd %GITHUB_WORKSPACE%
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+          set INCLUDE=%INCLUDE%;C:\Program Files (x86)\benchmark\include
+          set LIB=%LIB%;C:\Program Files (x86)\benchmark\lib
+          set INCLUDE=%INCLUDE%;C:\opt\github\range-v3\include
+          set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\include
+          echo %INCLUDE%
+          ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}}
+
+      - name: Run tests
+        shell: cmd
+        run: |
+          ${{matrix.outputfile}}
