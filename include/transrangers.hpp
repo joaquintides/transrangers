@@ -77,7 +77,7 @@ auto filter(Pred pred,Ranger rgr)
   });
 }
 
-template<typename F,typename Cursor>
+template<typename F,typename Cursor,typename=void>
 struct deref_fun
 {
   decltype(auto) operator*()const{return (*pf)(*p);} 
@@ -85,6 +85,22 @@ struct deref_fun
   F*     pf;
   Cursor p;
 };
+
+template<typename F,typename Cursor>
+struct deref_fun<
+  F,Cursor,
+  std::enable_if_t<
+    std::is_default_constructible_v<F>&&std::is_empty_v<F>
+  >
+>
+{
+  deref_fun(F*,Cursor p):p{p}{}
+  
+  decltype(auto) operator*()const{return F()(*p);} 
+    
+  Cursor p;
+};
+
     
 template<typename F,typename Ranger>
 auto transform(F f,Ranger rgr)
