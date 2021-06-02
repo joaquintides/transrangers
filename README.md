@@ -131,29 +131,26 @@ auto filter(Pred pred,Ranger rgr)
   });
 }
 
-template<typename F,typename Cursor>
+template<typename Cursor,typename F>
 struct deref_fun
 {
-  deref_fun(){}
-  deref_fun(F& f,Cursor p):pf{&f},p{std::move(p)}{}
-    
   decltype(auto) operator*()const{return (*pf)(*p);} 
     
-  F*     pf;
   Cursor p;
+  F*     pf;
 };
 
 template<typename F,typename Ranger>
 auto transform(F f,Ranger rgr)
 {
-  using cursor=deref_fun<F,typename Ranger::cursor>;
+  using cursor=deref_fun<typename Ranger::cursor,F>;
     
   return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](auto p){return dst(cursor(f,p));});
+    return rgr([&](auto p){return dst(cursor{p,&f});});
   });
 }
 ```
-(`ranger<cursor>(...)` is just some scaffolding to inject the required `cursor` nested typename into the returned ranger type. `deref_fun` is a wrapper over cursor `p` dereferencing to `f(*p)`.)  
+(`ranger<cursor>(...)` is just some scaffolding to inject the required `cursor` nested typename into the returned ranger type. `deref_fun` is a wrapper over a cursor `p` dereferencing to `f(*p)`.)  
 
 For this simple example, the generated code is basically the same (and as efficient) as in the push-based approach. Additionally, transrangers allow for operations that, as previously discussed, were not possible there:
 ```cpp
@@ -174,8 +171,9 @@ auto unique(Ranger rgr)
       if(!cont)return false; // honor stop if dst told us so
     }
     return rgr([&](auto q){  // regular loop once p has been initialized
-      if(*p==*q){p=q;return true;}
-      else{p=q;return dst(q);}
+      auto prev_p=p;
+      p=q;
+      return *prev_p==*q?true:dst(q);
     });
   });
 }
