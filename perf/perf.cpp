@@ -59,7 +59,7 @@ static void test1_transrangers(benchmark::State& st)
       
     int  res=0;
     auto rgr=transform(x3,filter(is_even,all(rng1)));
-    rgr([&](auto p){res+=*p;return true;});
+    rgr([&](const auto& p){res+=*p;return true;});
     volatile auto res2=res;
   }
 }
@@ -104,7 +104,7 @@ static void test2_transrangers(benchmark::State& st)
       
     int  res=0;
     auto rgr=transform(x3,filter(is_even,take(n,concat(all(rng2),all(rng2)))));
-    rgr([&](auto p){res+=*p;return true;});
+    rgr([&](const auto& p){res+=*p;return true;});
     volatile auto res2=res;
   }
 }
@@ -155,7 +155,7 @@ static void test3_transrangers(benchmark::State& st)
       
     int  res=0;
     auto rgr=filter(is_even,unique(all(rng3)));
-    rgr([&](auto p){res+=*p;return true;});
+    rgr([&](const auto& p){res+=*p;return true;});
     volatile auto res2=res;
   }
 }
@@ -209,7 +209,7 @@ static void test4_transrangers(benchmark::State& st)
       
     int  res=0;
     auto rgr=transform(x3,filter(is_even,unique(ranger_join(all(rng4)))));
-    rgr([&](auto p){res+=*p;return true;});
+    rgr([&](const auto& p){res+=*p;return true;});
     volatile auto res2=res;
   }
 }
@@ -257,7 +257,7 @@ static void test5_transrangers(benchmark::State& st)
     };
     auto rgr=
       transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5)))));
-    rgr([&](auto p){res+=*p;return true;});
+    rgr([&](const auto& p){res+=*p;return true;});
     volatile auto res2=res;
   }
 }
