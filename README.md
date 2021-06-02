@@ -204,7 +204,7 @@ auto concat(Ranger rgr,Rangers... rgrs)
 ```
 ### Performance
 ### Conclusions
-Transrangers are a new design pattern for efficient, composable range processing that is faster than pull-based C++/Range-v3 views whithout losing any expressiveness. The underlying architecture combines ideas from push processing with internal control of the iteration loop. Transrangers can be used on their own or be leveraged as an implementation detail of range libraries to improve the performance of view-based operations.
+Transrangers are a new design pattern for efficient, composable range processing that can be faster than pull-based C++/Range-v3 views whithout losing any expressiveness. The underlying architecture combines ideas from push processing with the internalization of control flow. Transrangers can be used on their own or be leveraged as an implementation detail of range libraries to improve the performance of view-based operations.
 ### Acknowledgments
 Many thanks to [Sam Darwin](https://github.com/sdarwin) for developing the [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml) used for benchmark automation.
 ### Annex A. Rangers are as expressive as range adaptors
