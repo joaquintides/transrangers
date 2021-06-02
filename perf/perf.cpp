@@ -226,4 +226,53 @@ static void test4_rangev3(benchmark::State& st)
 }
 BENCHMARK(test4_rangev3);
 
+auto rng5=rng4;
+
+static void test5_handwritten(benchmark::State& st)
+{
+  for(auto _:st){
+    int res=0;
+    for(auto&& srng:rng5){
+      int x=srng[0]+1;
+      for(int y:srng){
+        if(y!=x){
+          x=y;
+          if(is_even(x))res+=x3(x);
+        }
+      }
+    }
+    volatile auto res2=res;
+  }
+}
+BENCHMARK(test5_handwritten);
+
+static void test5_transrangers(benchmark::State& st)
+{
+  for(auto _:st){
+    using namespace transrangers;
+      
+    int  res=0;
+    auto unique_adaptor=[](auto&& srng){
+      return unique(all(std::forward<decltype(srng)>(srng)));
+    };
+    auto rgr=
+      transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5)))));
+    rgr([&](auto p){res+=*p;return true;});
+    volatile auto res2=res;
+  }
+}
+BENCHMARK(test5_transrangers);
+
+static void test5_rangev3(benchmark::State& st)
+{
+  for(auto _:st){
+    using namespace ranges::views;
+
+    auto unique_adaptor=[](auto&& srng){return srng|unique;};
+    volatile auto res=ranges::accumulate(
+      rng5|transform(unique_adaptor)|join|filter(is_even)|transform(x3),0);
+  }
+}
+BENCHMARK(test5_rangev3);
+
 BENCHMARK_MAIN();
