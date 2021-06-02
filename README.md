@@ -2,7 +2,9 @@
 An efficient, composable design pattern for range processing.
 ### Intro
 Consider the situation where we have a C++ (input or forward) range `rng`, *N* cascading range transformations *T<sub>i</sub>* and a final destination function object `dst` that successively consumes the values of the resulting range *T*<sub>*N*</sub>(···*T*<sub>1</sub>(`rng`)···).
-[IMG]
+
+![diagram](img/intro.png)
+
 We want to analyze the performance of various composable design patterns that can be applied to implement this scenario. 
 ### Pull-based approach
 C++ ranges/[Range-v3](https://github.com/ericniebler/range-v3) introduces *range adaptors*, utilities that take a range and return a *view* (a cheaply copyable range-like object) externally behaving like a transformed range:
@@ -71,9 +73,12 @@ As it stands, this design is unfortunately not as expressive as the pull-based a
 * Since consumption functions are passed element values rather than iterators, operations requiring access to past elements (vg. [`unique`](https://ericniebler.github.io/range-v3/structranges_1_1views_1_1unique__fn.html)) can't be implemented for forward ranges/views whose iterators dereference to non-copyable rvalues.
 * Operations requiring that extra elements be added to the tail of the transformed range can't be implemented because the consumption function is not informed about range termination (both RxCpp and transducers, however, make provision for this by augmenting the subscriber/transducer interface with termination signalling).
 * More importantly, transformations involving more than one source range, for instance `concat(rng|filter(is_even),rng2)|transform(x3)`,
-[IMG]
-can't be easily be implemented within a push-based scenario, as control flow would need to iterate first over `rng` and then jump to `rng2`, which is hard to specify declaratively. This is a fundamental trade-off when choosing between pull and push: pull lends itself to *fan-in* processing graphs (several sources) whereas push does to *fan-out* ones (several destinations):
-[IMG]
+
+  ![diagram](img/fan_in.png)
+
+  can't be easily be implemented within a push-based scenario, as control flow would need to iterate first over `rng` and then jump to `rng2`, which is hard to specify declaratively. This is a fundamental trade-off when choosing between pull and push: pull lends itself to *fan-in* processing graphs (several sources) whereas push does to *fan-out* ones (several destinations):
+  
+  ![diagram](img/fan_out.png)
 
 We will show how to retain the efficiency of the push-based approach while remedying its drawbacks by evolving the design pattern to:
 * using iterator passing rather than value passing,
