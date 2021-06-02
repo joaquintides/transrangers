@@ -92,7 +92,7 @@ template<typename Cursor,typename F>
 struct deref_fun<
   Cursor,F,
   std::enable_if_t<
-    std::is_default_constructible_v<F>&&std::is_empty_v<F>
+    std::is_trivially_default_constructible_v<F>&&std::is_empty_v<F>
   >
 >
 {
