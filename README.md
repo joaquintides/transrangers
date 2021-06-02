@@ -203,6 +203,20 @@ auto concat(Ranger rgr,Rangers... rgrs)
 }
 ```
 ### Performance
+We have written a [benchmark suite](perf/perf.cpp) that exercises several range processing chains:
+* Test 1: `filter|transform` over 1M integers.
+* Test 2: `concat|take(1.5M)|filter|transform` over two vectors of 1M integers each.
+* Test 3: `unique|filter` over 100k integers.
+* Test 4: `join|unique|filter|transform` over a collection of 10 vectors of 100k integers each.
+* Test 5: `transform(unique)|join|filter|transform` over a collection of 10 vectors of 100k integers each.
+
+using three approaches:
+* Handwritten code.
+* [Transrangers](include/transrangers.hpp).
+* [Range-v3](https://github.com/ericniebler/range-v3).
+
+on GCC 10.2, Clang 11.0 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise. Execution times are shown normalized to those of Range-v3.
+
 ### Conclusions
 Transrangers are a new design pattern for efficient, composable range processing that can be faster than pull-based C++/Range-v3 views whithout losing any expressiveness. The underlying architecture combines ideas from push processing with the internalization of control flow. Transrangers can be used on their own or be leveraged as an implementation detail of range libraries to improve the performance of view-based operations.
 ### Acknowledgments
