@@ -15,12 +15,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - compiler: g++-10
+          - compiler: g++-11
             compileroptions: -std=c++2a -fconcepts -lbenchmark -lpthread -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
             outputfile: Perf
-            os: ubuntu-20.04
-            install: g++-10
+            os: ubuntu-20.01
+            install: g++-11
           - compiler: clang++
             compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
@@ -34,8 +34,10 @@ jobs:
 
       - name: Install packages
         if: matrix.install
-        run: sudo apt install ${{matrix.install}}
-
+        run: |
+          sudo -E apt-add-repository -y ppa:ubuntu-toolchain-r/test
+          sudo apt-get update
+          sudo apt install -y ${{matrix.install}}
       - name: Install google/benchmark
         run: |
           mkdir -p /opt/github
