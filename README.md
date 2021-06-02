@@ -274,4 +274,4 @@ private:
   }
 };
 ```
-We simply store the number `n` of increments from the beginning and use that for equality comparison. This completes the proof. Note that the construct we have described is by no means an optimal implementation of a transranger for the underlying transformation: the proposition just asks for one possible realization of `tr`, not the best one. [`transranger_view.hpp`](LINK) provides a full implementation of the `view` adaptor. [`annex_a.hpp`](LINK) illustrates the construction of `tr` used in the proof.
+We simply store the number `n` of increments from the beginning and use that for equality comparison. This completes the proof. Note that the construct we have described is by no means an optimal implementation of a transranger for the underlying transformation: the proposition just asks for one possible realization of `tr`, not the best one. [`transranger_view.hpp`](link/transranger_view.hpp) provides a full implementation of the `view` adaptor. [`annex_a.hpp`](annex/annex_a.hpp) illustrates the construction of `tr` used in the proof.
