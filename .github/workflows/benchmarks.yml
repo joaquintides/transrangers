@@ -83,7 +83,7 @@ jobs:
       matrix:
         include:
           - compiler: cl
-            compileroptions: /std:c++latest /O2 /EHsc /MD
+            compileroptions: /std:c++latest /O2 /D "NDEBUG" /EHsc /MD
             sourcefile: perf/perf.cpp
             outputfile: perf.exe
             os: windows-2019
