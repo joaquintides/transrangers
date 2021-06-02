@@ -20,8 +20,6 @@
 #include <type_traits>
 #include <utility>
 
-#define TRANSRANGERS_FWD(x) std::forward<decltype(x)>(x)
-
 namespace transrangers{
 
 template<typename Cursor,typename F> 
@@ -48,7 +46,25 @@ auto all(Range&& rng)
     return true;
   });
 }
-      
+
+template<typename Range>
+struct all_copy
+{
+  using ranger=decltype(all(std::declval<Range&>()));
+  using cursor=typename ranger::cursor;
+  
+  auto operator()(auto p){return rgr(p);}
+
+  Range  rng;
+  ranger rgr=all(rng);
+};
+
+template<typename Range>
+auto all(Range&& rng) requires(std::is_rvalue_reference_v<Range&&>)
+{
+  return all_copy<Range>{std::move(rng)};
+}
+
 template<typename Pred,typename Ranger>
 auto filter(Pred pred,Ranger rgr)
 {
@@ -67,7 +83,7 @@ struct deref_fun
   deref_fun(){}
   deref_fun(F& f,Cursor p):pf{&f},p{std::move(p)}{}
     
-  decltype(auto) operator*(){return (*pf)(*p);} 
+  decltype(auto) operator*()const{return (*pf)(*p);} 
     
   F*     pf;
   Cursor p;
@@ -167,13 +183,12 @@ template<typename Ranger>
 auto ranger_join(Ranger rgr)
 {
   auto all_adaptor=[](auto&& srng){
-    return all(TRANSRANGERS_FWD(srng));
+    return all(std::forward<decltype(srng)>(srng));
   };
 
   return join(transform(all_adaptor,rgr));
 }
 
-} /* namespace transrangers */
+} /* transrangers */
 
-#undef TRANSRANGERS_FWD
 #endif
