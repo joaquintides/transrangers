@@ -215,7 +215,14 @@ using three approaches:
 * [Transrangers](include/transrangers.hpp).
 * [Range-v3](https://github.com/ericniebler/range-v3).
 
-on GCC 10.2, Clang 11.0 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise. Execution times are shown normalized to those of Range-v3.
+on GCC 11.1, Clang 11.0 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise (if you volunteer to re-run the benchmark on a local machine please let me know). Execution times are shown normalized to those of Range-v3.
+
+![GCC 11.1](img/perf_gcc_11.png)
+
+![Clang 11.0](img/perf_clang_11.png)
+
+![VS 2019](img/perf_vs_2019.png)
+
 
 ### Conclusions
 Transrangers are a new design pattern for efficient, composable range processing that can be faster than pull-based C++/Range-v3 views whithout losing any expressiveness. The underlying architecture combines ideas from push processing with the internalization of control flow. Transrangers can be used on their own or be leveraged as an implementation detail of range libraries to improve the performance of view-based operations.
