@@ -168,11 +168,9 @@ auto unique(Ranger rgr)
       if(!cont)return false;
     }
     return rgr([&](auto q){
-      if(*p==*q){p=q;return true;}
-      else{
-        p=q;
-        return dst(q);
-      }
+      auto pp=p;
+      p=q;
+      return *pp==*q?true:dst(q);
     });
   });
 }
