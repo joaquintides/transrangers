@@ -15,11 +15,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - compiler: g++-11.1
+          - compiler: g++-10
             compileroptions: -std=c++2a -fconcepts -lbenchmark -lpthread -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
+            install: g++-10
           - compiler: clang++
             compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
