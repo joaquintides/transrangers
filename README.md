@@ -20,7 +20,7 @@ for(int x:transform(x3,filter(is_even,rng))){
 We call this design pattern *pull-based* because control (the loop in the example) is located between the transformed range and the point of consumption by `dst`: values are asked for (pulled) and then fed to `dst`.
 
 Views are not particularly efficient in several situations:
-* When the transformed range has fever elements than the original (i.e. some elements are filtered out), there are more end-of-range checks than logically necessary. Take for instance `filter(is_even,rng)`: advancing to the next even element implies as many end-of-range checks as there are intervening odd elements plus one final check on the iterator to the even element, wich check is then redone at the outer loop. For exposition, the snippet above would expand to code equivalent to this:
+* When the transformed range has fewer elements than the original (i.e. some elements are filtered out), there are more end-of-range checks than logically necessary. Take for instance `filter(is_even,rng)`: advancing to the next even element implies as many end-of-range checks as there are intervening odd elements plus one final check on the iterator to the even element, wich check is then redone at the outer loop. For exposition, the snippet above would expand to code equivalent to this:
 ```cpp
 auto first=std::begin(rng);
 auto last=std::end(rng);
