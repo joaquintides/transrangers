@@ -59,7 +59,7 @@ struct all_copy
   using ranger=decltype(all(std::declval<Range&>()));
   using cursor=typename ranger::cursor;
   
-  auto operator()(const auto&& p){return rgr(p);}
+  auto operator()(const auto& p){return rgr(p);}
 
   Range  rng;
   ranger rgr=all(rng);
@@ -77,7 +77,7 @@ auto filter(Pred pred,Ranger rgr)
   using cursor=typename Ranger::cursor;
     
   return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](const auto&& p){
+    return rgr([&](const auto& p){
       return pred(*p)?dst(p):true;
     });
   });
@@ -113,7 +113,7 @@ auto transform(F f,Ranger rgr)
   using cursor=deref_fun<typename Ranger::cursor,F>;
     
   return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](const auto&& p){return dst(cursor{p,&f});});
+    return rgr([&](const auto& p){return dst(cursor{p,&f});});
   });
 }
 
@@ -123,7 +123,7 @@ auto take(int n,Ranger rgr)
   using cursor=typename Ranger::cursor;
     
   return ranger<cursor>([=](auto dst)mutable{
-    if(n)return rgr([&](const auto&& p){
+    if(n)return rgr([&](const auto& p){
       --n;
       return dst(p)&&(n!=0);
     })||(n==0);
@@ -160,14 +160,14 @@ auto unique(Ranger rgr)
     if(start){
       start=false;
       bool cont=false;
-      if(rgr([&](const auto&& q){
+      if(rgr([&](const auto& q){
         p=q;
         cont=dst(q);
         return false;
       }))return true;
       if(!cont)return false;
     }
-    return rgr([&](const auto&& q){
+    return rgr([&](const auto& q){
       auto prev_p=p;
       p=q;
       return *prev_p==*q?true:dst(q);
@@ -187,7 +187,7 @@ auto join(Ranger rgr)
       if(osrgr){
         if(!(*osrgr)(dst))return false;
       }
-      return(rgr([&](const auto&& p){
+      return(rgr([&](const auto& p){
         auto cont=(*p)(dst);
         if(!cont)osrgr.emplace(*p);
         return cont;
