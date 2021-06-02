@@ -71,6 +71,7 @@ jobs:
       - name: Compile
         run: |
           cd $GITHUB_WORKSPACE
+          ${{matrix.compiler}} --version
           ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}} -o ${{matrix.outputfile}}
 
       - name: Run tests
