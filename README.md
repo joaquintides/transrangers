@@ -20,7 +20,7 @@ for(int x:transform(x3,filter(is_even,rng))){
 We call this design pattern *pull-based* because control (the loop in the example) is located between the transformed range and the point of consumption by `dst`: values are asked for (pulled) and then fed to `dst`.
 
 Views are not particularly efficient in several situations:
-* When the transformed range has fewer elements than the original (i.e. some elements are filtered out), there are more end-of-range checks than logically necessary. Take for instance `filter(is_even,rng)`: advancing to the next even element implies as many end-of-range checks as there are intervening odd elements plus one final check on the iterator to the even element, wich check is then redone at the outer loop. For exposition, the snippet above would expand to code equivalent to this:
+* When the transformed range has fewer elements than the original (vg. some elements are filtered out), there are more end-of-range checks than logically necessary. Take for instance `filter(is_even,rng)`: advancing to the next even element implies as many end-of-range checks as there are intervening odd elements plus one final check on the iterator to the even element, wich check is then redone at the outer loop. For exposition, the snippet above would expand to code equivalent to this:
 ```cpp
 auto first=std::begin(rng);
 auto last=std::end(rng);
@@ -85,10 +85,10 @@ We will show how to retain the efficiency of the push-based approach while remed
 * moving control flow into the intermediate processing steps.
 ### Transrangers
 We introduce some definitions:
-* A *cursor* is a **[CHECK]** default-constructible, cheaply copyable, regular object with a dereference operation. Pointers and iterators are cursors (no comparison or arithmetic will be done on them, though).
+* A *cursor* is a lightweight [semiregular](https://en.cppreference.com/w/cpp/concepts/semiregular) object with a dereference operation. Pointers and iterators are cursors (no comparison or arithmetic will be done on them, though).
 * A *consumption function* is a function/function object accepting a cursor and returning `true` (more range values will be accepted) or `false` (stop traversing the range).
-* A *ranger* is a **[CHECK]** default-constructible, cheaply copyable object that traverses an actual or implicit range and invokes a consumption function with cursors to the range elements. More specifically, if `Ranger` is a ranger type, `rgr` is of type `Ranger` and `dst` is a consumption function compatible with the cursors of `Ranger`:
-  * `Ranger::cursor` is the type of the cursors emitted by `rng`.
+* A *ranger* is a lightweight [copyable](https://en.cppreference.com/w/cpp/concepts/copyable) object that traverses an actual or implicit range and invokes a consumption function with cursors to the range elements. More specifically, if `Ranger` is a ranger type, `rgr` is of type `Ranger` and `dst` is a consumption function compatible with the cursors of `Ranger`:
+  * `Ranger::cursor` is the type of the cursors emitted by `rgr`.
   * `rgr(dst)` succesively feeds the remaining range elements to `dst` until `dst` returns `false` or the range is fully traversed. The expression returns `false` if there *may* be remaining elements to process, in which case `rgr` can be further used with the same or a different consumption function.
 * A *transranger* is a utility that takes a ranger and returns a new ranger over a transformed range.
 
