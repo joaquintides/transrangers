@@ -1,5 +1,14 @@
 ## Transragers
 An efficient, composable design pattern for range processing.
+* [Intro](#intro)
+* [Pull-based approach](#pull-based-approach)
+* [Push-based approach](#push-based-approach)
+* [Transrangers](#transrangers)
+* [Performance](#performance)
+* [Transrangers as a backend for view-based operations](#transrangers-as-a-backend-for-view-based-operations)
+* [Conclusions](#conclusions)
+* [Acknowledgments](#acknowledgments)
+* [Annex A. Rangers are as expressive as range adaptors](#annex-a-rangers-are-as-expressive-as-range-adaptors)
 ### Intro
 Consider the situation where we have a C++ (input or forward) range `rng`, *N* cascading range transformations *T<sub>i</sub>* and a final destination function object `dst` that successively consumes the values of the resulting range *T*<sub>*N*</sub>(···*T*<sub>1</sub>(`rng`)···).
 
