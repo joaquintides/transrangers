@@ -157,7 +157,6 @@ auto unique(Ranger rgr)
   using cursor=typename Ranger::cursor;
     
   return ranger<cursor>([=,start=true,p=cursor{}](auto dst)mutable{
-#if 0
     if(start){
       start=false;
       bool cont=false;
@@ -173,15 +172,6 @@ auto unique(Ranger rgr)
       p=q;
       return *prev_p==*q?true:dst(q);
     });
-#else
-    return rgr([&](auto q){
-      auto prev_p=p;
-      p=q;
-      auto prev_start=start;
-      start=false;
-      return !prev_start&&*prev_p==*q?true:dst(q);
-    });
-#endif
   });
 }
 
