@@ -31,20 +31,20 @@
 #endif
 #endif
 
-auto rng=[]{
-  std::vector<int> rng(1000000);
-  std::iota(rng.begin(),rng.end(),0);
-  return rng;
-}();
-
 auto is_even=[](int x){return x%2==0;};
 auto x3=[](int x){return 3*x;};
+
+auto rng1=[]{
+  std::vector<int> rng1(1000000);
+  std::iota(rng1.begin(),rng1.end(),0);
+  return rng1;
+}();
 
 static void test1_handwritten(benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
-    for(auto x:rng){
+    for(auto x:rng1){
       if(is_even(x))res+=x3(x);
     }
     volatile auto res2=res;
@@ -58,7 +58,7 @@ static void test1_transrangers(benchmark::State& st)
     using namespace transrangers;
       
     int  res=0;
-    auto rgr=transform(x3,filter(is_even,all(rng)));
+    auto rgr=transform(x3,filter(is_even,all(rng1)));
     rgr([&](auto p){res+=*p;return true;});
     volatile auto res2=res;
   }
@@ -71,13 +71,13 @@ static void test1_rangev3(benchmark::State& st)
     using namespace ranges::views;
 
     volatile auto res=ranges::accumulate(
-      rng|filter(is_even)|transform(x3),0);
+      rng1|filter(is_even)|transform(x3),0);
   }
 }
 BENCHMARK(test1_rangev3);
 
-auto rng2=rng;
-int n=rng.size()+rng.size()/2;
+auto rng2=rng1;
+int n=rng2.size()+rng2.size()/2;
 
 static void test2_handwritten(benchmark::State& st)
 {
