@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - compiler: g++
-            compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
+            compileroptions: -std=c++2a -fconcepts -lbenchmark -lpthread -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
