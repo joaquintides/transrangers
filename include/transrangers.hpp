@@ -80,9 +80,6 @@ auto filter(Pred pred,Ranger rgr)
 template<typename F,typename Cursor>
 struct deref_fun
 {
-  deref_fun(){}
-  deref_fun(F& f,Cursor p):pf{&f},p{std::move(p)}{}
-    
   decltype(auto) operator*()const{return (*pf)(*p);} 
     
   F*     pf;
@@ -95,7 +92,7 @@ auto transform(F f,Ranger rgr)
   using cursor=deref_fun<F,typename Ranger::cursor>;
     
   return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](auto p){return dst(cursor(f,p));});
+    return rgr([&](auto p){return dst(cursor{&f,p});});
   });
 }
 
