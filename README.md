@@ -64,7 +64,7 @@ auto transform(F f, Out dst)
   };
 }
 
-auto out=
+auto out =
   filter(is_even,
     transform(x3,
       [&](int x) { dst(x); return true; }
