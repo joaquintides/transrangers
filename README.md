@@ -19,27 +19,27 @@ We want to analyze the performance of various composable design patterns that ca
 C++ ranges/[Range-v3](https://github.com/ericniebler/range-v3) introduces *range adaptors*, utilities that take a range and return a *view* (a cheaply copyable range-like object) externally behaving like a transformed range:
 ```cpp
 using namespace std::views;
-auto is_even=[](int x){return x%2==0;};
-auto x3=[](int x){return 3*x;};
+auto is_even = [](int x) { return x%2 == 0; };
+auto x3 = [](int x) { return 3*x; };
 
-for(int x:transform(x3,filter(is_even,rng))){
+for (int x: transform(x3, filter(is_even, rng))) {
   dst(x);
 }
 ```
 We call this design pattern *pull-based* because control (the loop in the example) is located between the transformed range and the point of consumption by `dst`: values are asked for (pulled) and then fed to `dst`.
 
 Views are not particularly efficient in several situations:
-* When the transformed range has fewer elements than the original (vg. some elements are filtered out), there are more end-of-range checks than logically necessary. Take for instance `filter(is_even,rng)`: advancing to the next even element implies as many end-of-range checks as there are intervening odd elements plus one final check on the iterator to the even element, wich check is then redone at the outer loop. For exposition, the snippet above would expand to code equivalent to this:
+* When the transformed range has fewer elements than the original (vg. some elements are filtered out), there are more end-of-range checks than logically necessary. Take for instance `filter(is_even, rng)`: advancing to the next even element implies as many end-of-range checks as there are intervening odd elements plus one final check on the iterator to the even element, wich check is then redone at the outer loop. For exposition, the snippet above would expand to code equivalent to this:
 ```cpp
-auto first=std::begin(rng);
-auto last=std::end(rng);
-while(first!=last&&!is_even(*first))++first; // first even element
-while(first!=last){ // main loop
+auto first = std::begin(rng);
+auto last = std::end(rng);
+while (first != last && !is_even(*first)) ++first; // first even element
+while (first != last) { // main loop
   dst(x3(*first));
-  while(++first!=last&&!is_even(*first)); // next even element
+  while (++first != last && !is_even(*first)); // next even element
 }
 ```
-* Similarly, views over compositions of ranges ([`join`](https://en.cppreference.com/w/cpp/ranges/join_view),[`concat`](https://ericniebler.github.io/range-v3/structranges_1_1concat__view.html)) need to check for end-of-subrange at each iteration, in addition to the outer check. 
+* Similarly, views over compositions of ranges ([`join`](https://en.cppreference.com/w/cpp/ranges/join_view), [`concat`](https://ericniebler.github.io/range-v3/structranges_1_1concat__view.html)) need to check for end-of-subrange at each iteration, in addition to the outer check. 
 
 From a high-level perspective, a pull-based design implies that range termination will be checked both internally and at the point of value consumption. An alternative is to turn consumption into a callback, that is, to apply an inversion of control.
 ### Push-based approach
@@ -47,18 +47,18 @@ Push-based designs are used by a number of data-processing paradigms, such as *R
 ```cpp
 #define FWD(x) std::forward<decltype(x)>(x)
 
-template<typename Pred,typename Out>
-auto filter(Pred pred,Out dst)
+template<typename Pred, typename Out>
+auto filter(Pred pred, Out dst)
 {
-  return [=](auto&& x){
-    return pred(x)?true:dst(FWD(x));
+  return [=](auto&& x) {
+    return pred(x) ? true : dst(FWD(x));
   };
 }
 
-template<typename F,typename Out>
-auto transform(F f,Out dst)
+template<typename F, typename Out>
+auto transform(F f, Out dst)
 {
-  return [=](auto&& x){
+  return [=](auto&& x) {
     return dst(f(FWD(x)));
   };
 }
@@ -66,12 +66,12 @@ auto transform(F f,Out dst)
 auto out=
   filter(is_even,
     transform(x3,
-      [&](int x){dst(x);return true;}
+      [&](int x) { dst(x); return true; }
     )
   );
     
-for(auto&& x:rng){
-  if(!out(FWD(x)))break;
+for (auto&& x: rng) {
+  if (!out(FWD(x))) break;
 }
 ```
 (Note that the transformation steps `filter(transform(dst))` are specified in reverse order than in the pull-based approach `transform(filter(rng))`.)
@@ -107,11 +107,11 @@ using namespace transrangers;
     
 // create the transforming ranger
 // all() adapts rng to a ranger
-auto rgr=transform(x3,filter(is_even,all(rng)));
+auto rgr = transform(x3, filter(is_even, all(rng)));
     
 // adapt dst to a ranger-compatible consumption function
 // run the ranger against dst (p is a cursor)
-rgr([&](auto p){dst(*p);return true;});
+rgr([&](auto p) { dst(*p); return true; });
 ```
 The natural implementations of the adaptor `all` and transrangers `filter` and `transform` are:
 ```cpp
@@ -120,42 +120,44 @@ auto all(Range&& rng)
 {
   using std::begin;
   using std::end;
-  using cursor=decltype(begin(rng));
+  using cursor = decltype(begin(rng));
   
-  return ranger<cursor>([first=begin(rng),last=end(rng)](auto dst)mutable{
-    while(first!=last)if(!dst(first++))return false;
+  return ranger<cursor>([first = begin(rng), last = end(rng)](auto dst) mutable {
+    while (first != last) if (!dst(first++)) return false;
     return true;
   });
 }
       
-template<typename Pred,typename Ranger>
-auto filter(Pred pred,Ranger rgr)
+template<typename Pred, typename Ranger>
+auto filter(Pred pred, Ranger rgr)
 {
-  using cursor=typename Ranger::cursor;
+  using cursor = typename Ranger::cursor;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](auto p){
-      return pred(*p)?dst(p):true;
+  return ranger<cursor>([=](auto dst) mutable {
+    return rgr([&](auto p) {
+      return pred(*p) ? dst(p) : true;
     });
   });
 }
 
-template<typename Cursor,typename F>
+template<typename Cursor, typename F>
 struct deref_fun
 {
-  decltype(auto) operator*()const{return (*pf)(*p);} 
+  decltype(auto) operator*() const { return (*pf)(*p); } 
     
   Cursor p;
   F*     pf;
 };
 
-template<typename F,typename Ranger>
-auto transform(F f,Ranger rgr)
+template<typename F, typename Ranger>
+auto transform(F f, Ranger rgr)
 {
-  using cursor=deref_fun<typename Ranger::cursor,F>;
+  using cursor = deref_fun<typename Ranger::cursor, F>;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](auto p){return dst(cursor{p,&f});});
+  return ranger<cursor>([=](auto dst) mutable {
+    return rgr([&](auto p) {
+      return dst(cursor{p, &f});
+    });
   });
 }
 ```
@@ -166,23 +168,23 @@ For this simple example, the generated code is basically the same (and as effici
 template<typename Ranger>
 auto unique(Ranger rgr)
 {
-  using cursor=typename Ranger::cursor;
+  using cursor = typename Ranger::cursor;
     
-  return ranger<cursor>([=,start=true,p=cursor{}](auto dst)mutable{
-    if(start){               // need to get the first element
-      start=false;
-      bool cont=false;
-      if(rgr([&](auto q){
-        p=q;                 // store the cursor
-        cont=dst(q);         // keep the continue/stop indication from dst
-        return false;        // stop ranging, we just wanted one element
-      }))return true;        // empty range
-      if(!cont)return false; // honor stop if dst told us so
+  return ranger<cursor>([=, start = true, p = cursor{}](auto dst) mutable {
+    if (start) {               // need to get the first element
+      start = false;
+      bool cont = false;
+      if (rgr([&](auto q) {
+        p = q;                 // store the cursor
+        cont = dst(q);         // keep the continue/stop indication from dst
+        return false;          // stop ranging, we just wanted one element
+      })) return true;         // empty range
+      if (!cont) return false; // honor stop if dst told us so
     }
-    return rgr([&](auto q){  // regular loop once p has been initialized
-      auto prev_p=p;
-      p=q;
-      return *prev_p==*q?true:dst(q);
+    return rgr([&](auto q) {   // regular loop once p has been initialized
+      auto prev_p = p;
+      p = q;
+      return *prev_p == *q ? true : dst(q);
     });
   });
 }
@@ -191,20 +193,20 @@ Not only can we keep a handle to the previous value thanks to cursor- (rather th
 ```cpp
 auto concat()
 {
-  return [](auto&&){return true;};
+  return [](auto&&) { return true; };
 }
 
-template<typename Ranger,typename... Rangers>
-auto concat(Ranger rgr,Rangers... rgrs)
+template<typename Ranger, typename... Rangers>
+auto concat(Ranger rgr, Rangers... rgrs)
 {
   // for brevity of exposition, it is assumed that all rangers have the
   // same cursor type
-  using cursor=typename Ranger::cursor;
+  using cursor = typename Ranger::cursor;
     
   return ranger<cursor>(
-    [=,cont=false,next=concat(rgrs...)](auto dst)mutable{
-      if(!cont){
-        if(!(cont=rgr(dst)))return false;
+    [=, cont = false, next = concat(rgrs...)](auto dst) mutable {
+      if (!cont) {
+        if (!(cont = rgr(dst))) return false;
       }
       return next(dst);
     }
@@ -240,13 +242,13 @@ Some observations:
 ### Transrangers as a backend for view-based operations
 Transrangers have merit on its own as a composable and [expressive](#annex-a-rangers-are-as-expressive-as-range-adaptors) design pattern, but they can also be used internally by pull-based libraries such as C++ ranges/Range-v3 to accelerate their algorithms:
 ```cpp
-template<ranges::input_range R,typename Proj=std::identity,typename Fun>
+template<ranges::input_range R, typename Proj=std::identity, typename Fun>
 constexpr ranges::for_each_result<ranges::borrowed_iterator_t<R>, Fun>
-for_each(R&& r,Fun f,Proj proj={})
+for_each(R&& r, Fun f, Proj proj = {})
 {
-  if constexpr(has_ranger_v<R>){
-    ranger_for(r)([&](auto p){
-      std::invoke(f,std::invoke(proj,*p));
+  if constexpr(has_ranger_v<R>) {
+    ranger_for(r)([&](auto p) {
+      std::invoke(f, std::invoke(proj, *p));
       return true;
     });
   }
@@ -266,7 +268,7 @@ Many thanks to [Sam Darwin](https://github.com/sdarwin) for developing the [GitH
 
 **Proof.** Let us consider the case where there is just one source range `rng` (extension to many ranges is straightfoward). We construct an example of a transranger equivalent to `ra` as:
 ```cpp
-auto tr=[=](auto rgr){return all(ra(view(rgr)));};
+auto tr = [=](auto rgr) { return all(ra(view(rgr))); };
 ```
 When passed an source ranger, `tr` converts it into a Range-v3 view with `view(rgr)`, transforms this via `ra` and converts the result back into a ranger with `all` (a version of `all` is needed that stores a copy of its temporary argument to avoid dangling references). We are left then with the task or defining the `view` adaptor. Let us begin by assuming that `ra` works on input ranges and thus `view` need only model this: most of the implementation of `view` is boilerplate code save for some critical parts in its associated iterator:
 ```cpp
@@ -276,16 +278,15 @@ template<typename Ranger>
 class input_iterator
 {
 public:
-  iterator_base(const Ranger& rgr):rgr{rgr}{advance();} 
+  iterator_base(const Ranger& rgr) : rgr{rgr} { advance(); } 
 
   ...
   
-  decltype(auto) operator*()const{return *p;}
-  Iterator& operator++(){advance();return *this;}
+  decltype(auto) operator*() const { return *p; }
+  Iterator& operator++() { advance(); return *this; }
   ...
 
-  friend bool operator==(const iterator_base& x,const sentinel&)
-    {return x.end;}
+  friend bool operator==(const iterator_base& x, const sentinel&) { return x.end; }
   ...
   
 private:
@@ -295,14 +296,14 @@ private:
 
   void advance()
   {
-    end=rgr([&](auto q){p=q;return false;}); 
+    end = rgr([&](auto q) { p=q; return false; }); 
   }
 };
 ```
 * `input_iterator` stores a copy of the associated ranger from the `view` parent container. Actually, this copy is wrapped into a [`semiregular_box`](https://en.cppreference.com/w/cpp/ranges/semiregular_wrapper) so that `input_iterator` is assignable even if `Ranger` is not. 
 * Advancing the iterator reduces to doing a single-step call on the ranger (this is acheived by having the consumption function return `false`) and storing the newly produced cursor, or marking the end if there are no values left (`rgr` returns `true`).
 * Dereferencing just uses the stored cursor.
-* `input_iterator` knows when it has reached the end of the range (`end==true`), so we can use an empty `sentinel` type for iterator-sentinel equality comparison.
+* `input_iterator` knows when it has reached the end of the range (`end == true`), so we can use an empty `sentinel` type for iterator-sentinel equality comparison.
 
 If `ra` requires that its argument be a forward range, we need to make the code slightly more complicated so that `forward_iterator` supports iterator-iterator equality comparison:
 ```cpp
@@ -312,19 +313,21 @@ class forward_iterator
 public:
   ...
 
-  friend bool operator==(const forward_iterator& x,const forward_iterator& y)
-    {return x.n==y.n;}
+  friend bool operator==(const forward_iterator& x, const forward_iterator& y)
+  {
+    return x.n == y.n;
+  }
   ...
   
 private:
   ranges::semiregular_box<Ranger> rgr;
   bool                            end;
   typename Ranger::cursor         p;
-  std::size_t                     n=0;
+  std::size_t                     n = 0;
 
   void advance()
   {
-    end=rgr([&](auto q){p=q;++n;return false;}); 
+    end = rgr([&](auto q) { p = q; ++n; return false; }); 
   }
 };
 ```
