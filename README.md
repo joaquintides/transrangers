@@ -82,7 +82,7 @@ A *consumption function* (*subscriber* in RxCpp, *reduction function* in transdu
 As it stands, this design is unfortunately not as expressive as the pull-based approach:
 * Since consumption functions are passed element values rather than iterators, operations requiring access to past elements (e.g. [`unique`](https://ericniebler.github.io/range-v3/structranges_1_1views_1_1unique__fn.html)) can't be implemented for forward ranges/views whose iterators dereference to non-copyable rvalues.
 * Operations requiring that extra elements be added to the tail of the transformed range can't be implemented because the consumption function is not informed about range termination (both RxCpp and transducers, however, make provision for this by augmenting the subscriber/transducer interface with termination signalling).
-* More importantly, transformations involving more than one source range, for instance `concat(rng|filter(is_even),rng2)|transform(x3)`,
+* More importantly, transformations involving more than one source range, for instance `concat(rng | filter(is_even), rng2) | transform(x3)`,
 
   ![diagram](img/fan_in.png)
 
@@ -253,7 +253,7 @@ for_each(R&& r, Fun f, Proj proj = {})
       return true;
     });
   }
-  else{
+  else {
     // classical code
   }
   return ranges::for_each_result{...};
