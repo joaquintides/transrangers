@@ -298,7 +298,6 @@ private:
   void advance()
   {
     end = rgr([&](auto q) { p=q; return false; }); 
-    end=rgr([&](auto q){p=q;return false;}); 
   }
 };
 ```
