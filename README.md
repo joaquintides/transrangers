@@ -224,7 +224,7 @@ We have written a [benchmark suite](perf/perf.cpp) that exercises several range 
 
 using three approaches:
 * Handwritten code.
-* [Transrangers](include/transrangers.hpp).
+* A proof-of-concept, minimal [transrangers](include/transrangers.hpp) library.
 * [Range-v3](https://github.com/ericniebler/range-v3).
 
 on GCC 11.1, Clang 11.0 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise (if you volunteer to re-run the benchmark on a local machine please let me know). Execution times are shown normalized to those of Range-v3.
