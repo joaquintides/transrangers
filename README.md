@@ -305,7 +305,6 @@ private:
 * Advancing the iterator reduces to doing a single-step call on the ranger (this is acheived by having the consumption function return `false`) and storing the newly produced cursor, or marking the end if there are no values left (`rgr` returns `true`).
 * Dereferencing just uses the stored cursor.
 * `input_iterator` knows when it has reached the end of the range (`end == true`), so we can use an empty `sentinel` type for iterator-sentinel equality comparison.
-* `input_iterator` knows when it has reached the end of the range (`end==true`), so we can use an empty `sentinel` type for iterator-sentinel equality comparison.
 
 If `ra` requires that its argument be a forward range, we need to make the code slightly more complicated so that `forward_iterator` supports iterator-iterator equality comparison:
 ```cpp
