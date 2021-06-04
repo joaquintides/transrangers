@@ -3,7 +3,7 @@ An efficient, composable design pattern for range processing.
 * [Intro](#intro)
 * [Pull-based approach](#pull-based-approach)
 * [Push-based approach](#push-based-approach)
-* [Transrangers](#transrangers)
+* [Transrangers](#transrangers-1)
 * [Performance](#performance)
 * [Transrangers as a backend for view-based operations](#transrangers-as-a-backend-for-view-based-operations)
 * [Conclusions](#conclusions)
