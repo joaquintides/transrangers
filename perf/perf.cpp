@@ -19,6 +19,7 @@
 #include <range/v3/view/take.hpp>
 #include <range/v3/view/transform.hpp>
 #include <range/v3/view/unique.hpp>
+#include <range/v3/view/zip.hpp>
 #include <transrangers.hpp>
 #include <vector>
 
