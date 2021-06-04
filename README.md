@@ -1,4 +1,4 @@
-## Transragers
+## Transrangers
 An efficient, composable design pattern for range processing.
 * [Intro](#intro)
 * [Pull-based approach](#pull-based-approach)
