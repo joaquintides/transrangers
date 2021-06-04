@@ -59,7 +59,6 @@ template<typename F, typename Out>
 auto transform(F f, Out dst)
 {
   return [=](auto&& x) {
-
     return dst(f(FWD(x)));
   };
 }
