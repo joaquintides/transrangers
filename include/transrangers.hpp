@@ -17,6 +17,7 @@
 
 #include <iterator>
 #include <optional>
+#include <tuple>
 #include <type_traits>
 #include <utility>
 
@@ -197,6 +198,47 @@ auto ranger_join(Ranger rgr)
   };
 
   return join(transform(all_adaptor,rgr));
+}
+
+template<typename... Rangers>
+struct zip_cursor
+{
+  auto operator*()const
+  {
+    return std::apply([](auto... ps){
+      return std::tuple<decltype(*ps)...>{*ps...};
+    },ps);
+  }
+  
+  std::tuple<typename Rangers::cursor...> ps;
+};
+
+template<typename... Rangers>
+auto zip(Rangers... rgrs)
+{
+  using cursor=zip_cursor<Rangers...>;
+
+  return ranger<cursor>(
+    [rgrps=std::make_tuple(std::make_pair(rgrs,typename Rangers::cursor{})...)]
+    (auto dst)mutable{
+      for(;;){
+        if(std::apply([](auto&... rgrps){
+          return (rgrps.first([&](auto p){
+            rgrps.second=p;
+            return false;
+          })||...); 
+        },rgrps)) return true;
+        
+        if(!dst(
+          cursor{
+            std::apply([](auto&... rgrps){
+              return std::make_tuple(rgrps.second...);
+            },rgrps)
+          }
+        )) return false;
+      }
+    }
+  );
 }
 
 } /* transrangers */
