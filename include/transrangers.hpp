@@ -95,7 +95,7 @@ struct deref_fun<
   >
 >
 {
-  deref_fun(Cursor p,F*):p{p}{}
+  deref_fun(Cursor p={},F* =nullptr):p{p}{}
 
   decltype(auto) operator*()const{return F()(*p);} 
     
