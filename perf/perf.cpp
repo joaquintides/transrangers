@@ -276,6 +276,7 @@ static void test5_rangev3(benchmark::State& st)
 }
 BENCHMARK(test5_rangev3);
 
+auto divisible_by_3=[](int x){return x%3==0;};
 auto sum=[](const auto& p){return std::get<0>(p)+std::get<1>(p);};
 auto rng6=rng1;
 
@@ -285,7 +286,7 @@ static void test6_handwritten(benchmark::State& st)
     int res=0;
     for(auto x:rng6){
       auto y=x+x3(x);
-      if(is_even(y))res+=y;
+      if(divisible_by_3(y))res+=y;
     }
     volatile auto res2=res;
   }
@@ -299,7 +300,8 @@ static void test6_transrangers(benchmark::State& st)
       
     int res=0;
     auto rgr=
-      filter(is_even,transform(sum,zip(all(rng6),transform(x3,all(rng6)))));
+      filter(divisible_by_3,
+        transform(sum,zip(all(rng6),transform(x3,all(rng6)))));
     rgr([&](const auto& p){res+=*p;return true;});
     volatile auto res2=res;
   }
@@ -312,7 +314,7 @@ static void test6_rangev3(benchmark::State& st)
     using namespace ranges::views;
 
     volatile auto res=ranges::accumulate(
-      zip(rng6,rng6|transform(x3))|transform(sum)|filter(is_even),0);
+      zip(rng6,rng6|transform(x3))|transform(sum)|filter(divisible_by_3),0);
   }
 }
 BENCHMARK(test6_rangev3);
