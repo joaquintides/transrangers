@@ -58,7 +58,7 @@ static void test1_transrangers(benchmark::State& st)
     volatile auto res2=res;
   }
 }
-BENCHMARK(test1_transrangers);
+BENCHMARK(test1_transrangers)->Name("transrangers zip(1,concat(2,3))");
 
 static void test2_transrangers(benchmark::State& st)
 {
@@ -72,7 +72,7 @@ static void test2_transrangers(benchmark::State& st)
     volatile auto res2=res;
   }
 }
-BENCHMARK(test2_transrangers);
+BENCHMARK(test2_transrangers)->Name("transrangers zip(concat(2,3),1)");
 
 static void test3_transrangers(benchmark::State& st)
 {
@@ -86,7 +86,7 @@ static void test3_transrangers(benchmark::State& st)
     volatile auto res2=res;
   }
 }
-BENCHMARK(test3_transrangers);
+BENCHMARK(test3_transrangers)->Name("transrangers push_zip(1,concat(2,3))");
 
 static void test4_transrangers(benchmark::State& st)
 {
@@ -100,7 +100,7 @@ static void test4_transrangers(benchmark::State& st)
     volatile auto res2=res;
   }
 }
-BENCHMARK(test4_transrangers);
+BENCHMARK(test4_transrangers)->Name("transrangers push_zip(concat(2,3),1)");
 
 static void test5_rangev3(benchmark::State& st)
 {
@@ -111,7 +111,7 @@ static void test5_rangev3(benchmark::State& st)
       zip(rng1,concat(rng2,rng3))|transform(sum),0);
   }
 }
-BENCHMARK(test5_rangev3);
+BENCHMARK(test5_rangev3)->Name("Range-v3 zip(1,concat(2,3))");
 
 static void test6_rangev3(benchmark::State& st)
 {
@@ -122,6 +122,6 @@ static void test6_rangev3(benchmark::State& st)
       zip(concat(rng2,rng3),rng1)|transform(sum),0);
   }
 }
-BENCHMARK(test6_rangev3);
+BENCHMARK(test6_rangev3)->Name("Range-v3 zip(concat(2,3),1)");
 
 BENCHMARK_MAIN();
