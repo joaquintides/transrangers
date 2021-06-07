@@ -29,7 +29,7 @@
 #endif
 
 auto rng1=[]{
-  std::vector<int> rng1(1000000);
+  std::vector<int> rng1(2000000);
   std::iota(rng1.begin(),rng1.end(),0);
   return rng1;
 }();
