@@ -223,7 +223,7 @@ auto zip(Rangers... rgrs_)
       auto zp=cursor{};
       for(;;){
         if([&]<std::size_t... I>(std::index_sequence<I...>){
-          return (std::get<I>(rgrs)([&](auto p){
+          return (std::get<I>(rgrs)([&](const auto& p){
             std::get<I>(zp.ps)=p;
             return false;
           })||...); 
@@ -243,11 +243,11 @@ auto push_zip(Ranger rgr,Rangers... rgrs_)
   return ranger<cursor>(
     [=,rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
       bool finished=false;
-      return rgr([&](auto p){
+      return rgr([&](const auto& p){
         auto zp=cursor{};
         std::get<0>(zp.ps)=p;
         if([&]<std::size_t... I>(std::index_sequence<I...>){
-          return (std::get<I>(rgrs)([&](auto p){
+          return (std::get<I>(rgrs)([&](const auto& p){
             std::get<I+1>(zp.ps)=p;
             return false;
           })||...); 
