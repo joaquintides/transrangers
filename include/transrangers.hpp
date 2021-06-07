@@ -205,7 +205,7 @@ struct zip_cursor
 {
   auto operator*()const
   {
-    return std::apply([](auto... ps){
+    return std::apply([](const auto&... ps){
       return std::tuple<decltype(*ps)...>{*ps...};
     },ps);
   }
