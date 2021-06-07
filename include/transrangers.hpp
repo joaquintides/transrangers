@@ -214,12 +214,12 @@ struct zip_cursor
 };
 
 template<typename... Rangers>
-auto zip(Rangers... rgrs)
+auto zip(Rangers... rgrs_)
 {
   using cursor=zip_cursor<Rangers...>;
 
   return ranger<cursor>(
-    [rgrs=std::make_tuple(rgrs...)](auto dst)mutable{
+    [rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
       auto ps=std::make_tuple(typename Rangers::cursor{}...);
       for(;;){
         if([&]<std::size_t... I>(std::index_sequence<I...>){
@@ -236,12 +236,12 @@ auto zip(Rangers... rgrs)
 }
 
 template<typename Ranger,typename... Rangers>
-auto push_zip(Ranger rgr,Rangers... rgrs)
+auto push_zip(Ranger rgr,Rangers... rgrs_)
 {
   using cursor=zip_cursor<Ranger,Rangers...>;
 
   return ranger<cursor>(
-    [=,rgrs=std::make_tuple(rgrs...)](auto dst)mutable{
+    [=,rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
       bool finished=false;
       return rgr([&](auto p){
         auto ps=std::make_tuple(p,typename Rangers::cursor{}...);
