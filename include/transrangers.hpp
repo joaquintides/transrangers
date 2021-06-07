@@ -241,6 +241,39 @@ auto zip(Rangers... rgrs)
   );
 }
 
+template<typename Ranger,typename... Rangers>
+auto push_zip(Ranger rgr,Rangers... rgrs)
+{
+  using cursor=zip_cursor<Ranger,Rangers...>;
+
+  return ranger<cursor>(
+    [=,
+     rgrps=std::make_tuple(std::make_pair(rgrs,typename Rangers::cursor{})...)]
+    (auto dst)mutable{
+      bool finished=false;
+      return rgr([&](auto p){
+        if(std::apply([](auto&... rgrps){
+          return (rgrps.first([&](auto q){
+            rgrps.second=q;
+            return false;
+          })||...); 
+        },rgrps)){
+          finished=true;
+          return false;
+        }
+        
+        return dst(
+          cursor{
+            std::apply([&](auto&... rgrps){
+              return std::make_tuple(p,rgrps.second...);
+            },rgrps)
+          }
+        );
+      })||finished;
+    }
+  );
+}
+
 } /* transrangers */
 
 #endif
