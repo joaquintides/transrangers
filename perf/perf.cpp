@@ -39,7 +39,7 @@ auto rng2=[]{
   return rng1;
 }();
 auto rng3=[]{
-  std::vector<int> rng2(1000000);
+  std::vector<int> rng3(1000000);
   std::iota(rng3.begin(),rng3.end(),2000);
   return rng1;
 }();
