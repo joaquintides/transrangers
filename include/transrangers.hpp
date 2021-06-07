@@ -220,16 +220,16 @@ auto zip(Rangers... rgrs_)
 
   return ranger<cursor>(
     [rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
-      auto ps=std::make_tuple(typename Rangers::cursor{}...);
+      auto zp=cursor{};
       for(;;){
         if([&]<std::size_t... I>(std::index_sequence<I...>){
           return (std::get<I>(rgrs)([&](auto p){
-            std::get<I>(ps)=p;
+            std::get<I>(zp.ps)=p;
             return false;
           })||...); 
         }(std::index_sequence_for<Rangers...>{})) return true;
         
-        if(!dst(cursor{ps})) return false;
+        if(!dst(zp)) return false;
       }
     }
   );
@@ -244,10 +244,11 @@ auto push_zip(Ranger rgr,Rangers... rgrs_)
     [=,rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
       bool finished=false;
       return rgr([&](auto p){
-        auto ps=std::make_tuple(p,typename Rangers::cursor{}...);
+        auto zp=cursor{};
+        std::get<0>(zp.ps)=p;
         if([&]<std::size_t... I>(std::index_sequence<I...>){
           return (std::get<I>(rgrs)([&](auto p){
-            std::get<I+1>(ps)=p;
+            std::get<I+1>(zp.ps)=p;
             return false;
           })||...); 
         }(std::index_sequence_for<Rangers...>{})){
@@ -255,7 +256,7 @@ auto push_zip(Ranger rgr,Rangers... rgrs_)
           return false;
         }
         
-        return dst(cursor{ps});
+        return dst(zp);
       })||finished;
     }
   );
