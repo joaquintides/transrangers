@@ -51,7 +51,7 @@ template<typename Pred, typename Out>
 auto filter(Pred pred, Out dst)
 {
   return [=](auto&& x) {
-    return pred(x) ? true : dst(FWD(x));
+    return pred(x) ? dst(FWD(x)) : true;
   };
 }
 
