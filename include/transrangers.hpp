@@ -45,7 +45,6 @@ auto all(Range&& rng)
   return ranger<cursor>([first=begin(rng),last=end(rng)](auto dst)mutable{
     auto it=first;
     while(it!=last)if(!dst(it++)){first=it;return false;}
-    first=it;
     return true;
   });
 }
