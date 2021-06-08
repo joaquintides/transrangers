@@ -127,25 +127,10 @@ auto take(int n,Ranger rgr)
   });
 }
 
-auto concat()
+template<typename Ranger>
+auto concat(Ranger rgr)
 {
-  return [](auto&&){return true;};
-}
-
-template<typename Ranger1,typename Ranger2>
-auto concat(Ranger1 rgr1,Ranger2 rgr2)
-{
-  using cursor=typename Ranger1::cursor;
-    
-  return ranger<cursor>(
-    [=,first_rng=true](auto dst)mutable{
-      if(first_rng){
-        if(rgr1(dst))first_rng=false;
-        else return false;
-      }
-      return rgr2(dst);
-    }
-  );
+  return rgr;
 }
 
 template<typename Ranger,typename... Rangers>
