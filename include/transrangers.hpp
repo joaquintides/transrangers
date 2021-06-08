@@ -132,6 +132,27 @@ auto concat()
   return [](auto&&){return true;};
 }
 
+template<typename Ranger1,typename Ranger2>
+auto concat(Ranger1 rgr1,Ranger2 rgr2)
+{
+  using cursor=typename Ranger1::cursor;
+    
+  return ranger<cursor>(
+    [=,i=std::size_t(0)](auto dst)mutable{
+      switch(i){
+      case 0:
+        if(rgr1(dst))i=1;
+        else return false;
+      case 1:
+        if(rgr2(dst))i=2;
+        else return false;
+      default:
+        return true;
+      }
+    }
+  );
+}
+
 template<typename Ranger,typename... Rangers>
 auto concat(Ranger rgr,Rangers... rgrs)
 {
@@ -146,7 +167,7 @@ auto concat(Ranger rgr,Rangers... rgrs)
     }
   );
 }
-    
+
 template<typename Ranger>
 auto unique(Ranger rgr)
 {
