@@ -138,17 +138,12 @@ auto concat(Ranger1 rgr1,Ranger2 rgr2)
   using cursor=typename Ranger1::cursor;
     
   return ranger<cursor>(
-    [=,i=std::size_t(0)](auto dst)mutable{
-      switch(i){
-      case 0:
-        if(rgr1(dst))i=1;
+    [=,first_rng=true](auto dst)mutable{
+      if(first_rng){
+        if(rgr1(dst))first_rng=false;
         else return false;
-      case 1:
-        if(rgr2(dst))i=2;
-        else return false;
-      default:
-        return true;
       }
+      return rgr2(dst);
     }
   );
 }
