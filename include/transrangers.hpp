@@ -140,8 +140,7 @@ auto concat(Ranger1 rgr1,Ranger2 rgr2)
   return ranger<cursor>(
     [=,first_rng=true](auto dst)mutable{
       if(first_rng){
-        if(rgr1(dst))first_rng=false;
-        else return false;
+        if((first_rng=!rgr1(dst)))return false;
       }
       return rgr2(dst);
     }
