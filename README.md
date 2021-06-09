@@ -266,11 +266,11 @@ Many thanks to [Sam Darwin](https://github.com/sdarwin) for developing the [GitH
 ### Annex A. Rangers are as expressive as range adaptors
 **Proposition.** Any transformation performed by a range adaptor on input or forward ranges can be implemented as a transranger. Formally, for any range adaptor `ra` there is a transranger `tr` such that `tr(all(rngs)...)` produces the same values as `ra(rngs...)` for any pack of (input or forward) ranges `rngs...` compatible with `ra`.
 
-**Proof.** Let us consider the case where `ra` is unary (extension to many arguments is straightfoward). We construct an example of a transranger equivalent to `ra` as:
+**Proof.** We construct an example of a transranger equivalent to `ra` as:
 ```cpp
-auto tr = [=](auto rgr) { return all(ra(view(rgr))); };
+auto tr = [=](auto... rgrs) { return all(ra(view(rgrs)...)); };
 ```
-When passed a source ranger `rgr`, `tr` converts it into a Range-v3 view with `view(rgr)`, transforms this via `ra` and converts the result back into a ranger with `all` (a version of `all` is needed that stores a copy of its temporary argument to avoid dangling references). We are left then with the task or defining the `view` adaptor. Let us begin by assuming that `ra` works on input ranges and thus `view` need only model this: most of the implementation of `view` is boilerplate code save for some critical parts in its associated iterator:
+When passed the source rangers `rgrs...`, `tr` converts them into Range-v3 views with `view(rgrs)...`, transforms these via `ra` and converts the result back into a ranger with `all` (a version of `all` is needed that stores a copy of its temporary argument to avoid dangling references). We are left then with the task or defining the `view` adaptor. Let us begin by assuming that `ra` works on input ranges and thus `view` need only model this: most of the implementation of `view` is boilerplate code save for some critical parts in its associated iterator:
 ```cpp
 struct sentinel{};
 
