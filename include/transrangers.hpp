@@ -206,7 +206,7 @@ struct zip_cursor
 {
   auto operator*()const
   {
-    return std::apply([](auto... ps){
+    return std::apply([](const auto&... ps){
       return std::tuple<decltype(*ps)...>{*ps...};
     },ps);
   }
@@ -215,28 +215,22 @@ struct zip_cursor
 };
 
 template<typename... Rangers>
-auto zip(Rangers... rgrs)
+auto zip(Rangers... rgrs_)
 {
   using cursor=zip_cursor<Rangers...>;
 
   return ranger<cursor>(
-    [rgrps=std::make_tuple(std::make_pair(rgrs,typename Rangers::cursor{})...)]
-    (auto dst)mutable{
+    [rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
+      auto zp=cursor{};
       for(;;){
-        if(std::apply([](auto&... rgrps){
-          return (rgrps.first([&](auto p){
-            rgrps.second=p;
+        if([&]<std::size_t... I>(std::index_sequence<I...>){
+          return (std::get<I>(rgrs)([&](const auto& p){
+            std::get<I>(zp.ps)=p;
             return false;
           })||...); 
-        },rgrps)) return true;
+        }(std::index_sequence_for<Rangers...>{})) return true;
         
-        if(!dst(
-          cursor{
-            std::apply([](auto&... rgrps){
-              return std::make_tuple(rgrps.second...);
-            },rgrps)
-          }
-        )) return false;
+        if(!dst(zp)) return false;
       }
     }
   );
