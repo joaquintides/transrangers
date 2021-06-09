@@ -222,12 +222,20 @@ auto zip(Rangers... rgrs)
   return ranger<cursor>(
     [=,zp=cursor{}](auto dst)mutable{
       for(;;){
-        if([&]<std::size_t... I>(std::index_sequence<I...>){
+        if([&]<std::size_t... I>(std::index_sequence<I...>
+#ifdef _MSC_VER
+          ,auto&... rgrs
+#endif
+        ){
           return (rgrs([&](const auto& p){
             std::get<I>(zp.ps)=p;
             return false;
           })||...); 
-        }(std::index_sequence_for<Rangers...>{})) return true;
+        }(std::index_sequence_for<Rangers...>{}
+#ifdef _MSC_VER
+          ,rgrs...
+#endif
+        )) return true;
         
         if(!dst(zp)) return false;
       }
@@ -245,12 +253,20 @@ auto push_zip(Ranger rgr,Rangers... rgrs)
       bool finished=false;
       return rgr([&](const auto& p){
         std::get<0>(zp.ps)=p;
-        if([&]<std::size_t... I>(std::index_sequence<I...>){
+        if([&]<std::size_t... I>(std::index_sequence<I...>
+#ifdef _MSC_VER
+          ,auto&... rgrs
+#endif
+        ){
           return (rgrs([&](const auto& p){
             std::get<I+1>(zp.ps)=p;
             return false;
           })||...); 
-        }(std::index_sequence_for<Rangers...>{})){
+        }(std::index_sequence_for<Rangers...>{}
+#ifdef _MSC_VER
+          ,rgrs...
+#endif
+        )){
           finished=true;
           return false;
         }
