@@ -220,8 +220,7 @@ auto zip(Rangers... rgrs_)
   using cursor=zip_cursor<Rangers...>;
 
   return ranger<cursor>(
-    [rgrs=std::make_tuple(rgrs_...)](auto dst)mutable{
-      auto zp=cursor{};
+    [rgrs=std::make_tuple(rgrs_...),zp=cursor{}](auto dst)mutable{
       for(;;){
         if([&]<std::size_t... I>(std::index_sequence<I...>){
           return (std::get<I>(rgrs)([&](const auto& p){
