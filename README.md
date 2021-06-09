@@ -305,7 +305,7 @@ private:
 * Dereferencing just uses the stored cursor.
 * `input_iterator` knows when it has reached the end of the range (`end == true`), so we can use an empty `sentinel` type for iterator-sentinel equality comparison.
 
-If `ra` requires that its argument be a forward range, we need to make the code slightly more complicated so that `forward_iterator` supports iterator-iterator equality comparison:
+If `ra` requires that some of their argument be forward ranges, we need to make the code slightly more complicated so that `forward_iterator` supports iterator-iterator equality comparison:
 ```cpp
 template<typename Ranger>
 class forward_iterator
