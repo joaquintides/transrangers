@@ -43,8 +43,7 @@ auto all(Range&& rng)
   using cursor=decltype(begin(rng));
   
   return ranger<cursor>([first=begin(rng),last=end(rng)](auto dst)mutable{
-    auto it=first;
-    while(it!=last)if(!dst(it++)){first=it;return false;}
+    while(first!=last)if(!dst(first++))return false;
     return true;
   });
 }
