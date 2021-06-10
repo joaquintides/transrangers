@@ -183,8 +183,9 @@ auto join(Ranger rgr)
         if(!(*osrgr)(dst))return false;
       }
       return(rgr([&](const auto& p){
-        auto cont=(*p)(dst);
-        if(!cont)osrgr.emplace(*p);
+        auto srgr=*p;
+        auto cont=srgr(dst);
+        if(!cont)osrgr.emplace(std::move(srgr));
         return cont;
       }));
   });    
