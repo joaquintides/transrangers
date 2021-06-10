@@ -43,11 +43,11 @@ auto all(Range&& rng)
   using cursor=decltype(begin(rng));
   
   return ranger<cursor>([first=begin(rng),last=end(rng)](auto dst)mutable{
-    while(first!=last)if(!dst(first++))return false;
+    auto it=first;
+    while(it!=last)if(!dst(it++)){first=it;return false;}
     return true;
   });
 }
-
 template<typename Range>
 struct all_copy
 {
