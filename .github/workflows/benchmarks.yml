@@ -79,7 +79,9 @@ jobs:
 
       - name: Run tests
         run: |
+          sudo cpupower frequency-set --governor performance
           ./${{matrix.outputfile}}
+          sudo cpupower frequency-set --governor powersave
 
   windows:
     strategy:
