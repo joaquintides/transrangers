@@ -155,13 +155,11 @@ auto unique(Ranger rgr)
   return ranger<cursor>([=,start=true,p=cursor{}](auto dst)mutable{
     if(start){
       start=false;
-      bool cont=false;
       if(rgr([&](const auto& q){
         p=q;
-        cont=dst(q);
         return false;
       }))return true;
-      if(!cont)return false;
+      if(!dst(q))return false;
     }
     return rgr([&](const auto& q){
       if(*p==*q){p=q;return true;}
