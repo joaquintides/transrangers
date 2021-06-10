@@ -79,7 +79,7 @@ jobs:
 
       - name: Run tests
         run: |
-          ./${{matrix.outputfile}}
+          ./${{matrix.outputfile}} --benchmark_repetitions 3
 
   windows:
     strategy:
