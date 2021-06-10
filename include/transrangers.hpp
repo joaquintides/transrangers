@@ -159,7 +159,7 @@ auto unique(Ranger rgr)
         p=q;
         return false;
       }))return true;
-      if(!dst(q))return false;
+      if(!dst(p))return false;
     }
     return rgr([&](const auto& q){
       if(*p==*q){p=q;return true;}
