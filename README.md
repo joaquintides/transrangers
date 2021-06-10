@@ -96,7 +96,7 @@ We will show how to retain the efficiency of the push-based approach while remed
 We introduce some definitions:
 * A *cursor* is a lightweight [semiregular](https://en.cppreference.com/w/cpp/concepts/semiregular) object with a dereference operation. Pointers and iterators are cursors (no comparison or arithmetic will be done on them, though).
 * A *consumption function* is a function/function object accepting a cursor and returning `true` (more range values will be accepted) or `false` (stop traversing the range).
-* A *ranger* is a lightweight [copyable](https://en.cppreference.com/w/cpp/concepts/copyable) object that traverses an actual or implicit range and invokes a consumption function with cursors to the range elements. More specifically, if `Ranger` is a ranger type, `rgr` is of type `Ranger` and `dst` is a consumption function compatible with the cursors of `Ranger`:
+* A *ranger* is a lightweight [copy-constructible](https://en.cppreference.com/w/cpp/concepts/copy_constructible) object that traverses an actual or implicit range and invokes a consumption function with cursors to the range elements. More specifically, if `Ranger` is a ranger type, `rgr` is of type `Ranger` and `dst` is a consumption function compatible with the cursors of `Ranger`:
   * `Ranger::cursor` is the type of the cursors emitted by `rgr`.
   * `rgr(dst)` succesively feeds the remaining range elements to `dst` until `dst` returns `false` or the range is fully traversed. The expression returns `false` if there *may* be remaining elements to process, in which case `rgr` can be further used with the same or a different consumption function.
 * A *transranger* is a utility that takes a ranger and returns a new ranger over a transformed range.
@@ -300,7 +300,7 @@ private:
   }
 };
 ```
-* `input_iterator` stores a copy of the associated ranger from the `view` parent container. Actually, this copy is wrapped into a [`semiregular_box`](https://en.cppreference.com/w/cpp/ranges/semiregular_wrapper) so that `input_iterator` is assignable even if `Ranger` is not. 
+* `input_iterator` stores a copy of the associated ranger from the `view` parent container. Actually, this copy is wrapped into a [`semiregular_box`](https://en.cppreference.com/w/cpp/ranges/semiregular_wrapper) so that `input_iterator` is semiregular even if `Ranger` is not. 
 * Advancing the iterator reduces to doing a single-step call on the ranger (this is acheived by having the consumption function return `false`) and storing the newly produced cursor, or marking the end if there are no values left (`rgr` returns `true`).
 * Dereferencing just uses the stored cursor.
 * `input_iterator` knows when it has reached the end of the range (`end == true`), so we can use an empty `sentinel` type for iterator-sentinel equality comparison.
