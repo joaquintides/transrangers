@@ -79,12 +79,7 @@ jobs:
 
       - name: Run tests
         run: |
-          ./${{matrix.outputfile}} --benchmark_filter=test1
-          ./${{matrix.outputfile}} --benchmark_filter=test2
-          ./${{matrix.outputfile}} --benchmark_filter=test3
-          ./${{matrix.outputfile}} --benchmark_filter=test4
-          ./${{matrix.outputfile}} --benchmark_filter=test5
-          ./${{matrix.outputfile}} --benchmark_filter=test6
+          ./${{matrix.outputfile}}
 
   windows:
     strategy:
