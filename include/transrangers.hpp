@@ -48,6 +48,7 @@ auto all(Range&& rng)
     return true;
   });
 }
+
 template<typename Range>
 struct all_copy
 {
@@ -66,12 +67,20 @@ auto all(Range&& rng) requires(std::is_rvalue_reference_v<Range&&>)
   return all_copy<Range>{std::move(rng)};
 }
 
+template<typename Pred>
+auto pred_box(Pred pred)
+{
+  return [=](auto&&... x)->int{
+    return pred(std::forward<decltype(x)>(x)...);
+  };
+}
+
 template<typename Pred,typename Ranger>
-auto filter(Pred pred,Ranger rgr)
+auto filter(Pred pred_,Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=](auto dst)mutable{
+  return ranger<cursor>([=,pred=pred_box(pred_)](auto dst)mutable{
     return rgr([&](const auto& p){
       return pred(*p)?dst(p):true;
     });
