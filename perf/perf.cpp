@@ -32,7 +32,7 @@
 #endif
 #endif
 
-auto is_even=[](int x){return x%2==1;};
+auto is_even=[](int x){return x%2==0;};
 auto x3=[](int x){return 3*x;};
 
 auto rng1=[]{
