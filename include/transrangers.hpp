@@ -172,10 +172,9 @@ auto unique(Ranger rgr)
       }))return true;
       if(!cont)return false;
     }
-    return rgr([&](const auto& q){
-      auto prev=p;
-      p=q;
-      return (*prev==*q)||dst(q);
+    return rgr([&,prev=p](const auto& q)mutable{
+      if((*prev==*q)||dst(q)){prev=q;return true;}
+      else{p=q;return false;}
     });
   });
 }
