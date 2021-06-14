@@ -22,11 +22,11 @@
 #include <utility>
 
 #if defined(__clang__)
-#define TRANSRANGERS_FLATTEN __attribute__((flatten)) -> int
-#define TRANSRANGERS_MUTABLE_FLATTEN  __attribute__((flatten)) mutable -> int
+#define TRANSRANGERS_FLATTEN __attribute__((flatten))
+#define TRANSRANGERS_MUTABLE_FLATTEN  __attribute__((flatten)) mutable
 #elif defined(__GNUC__)
-#define TRANSRANGERS_FLATTEN __attribute__((flatten)) -> int
-#define TRANSRANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))  -> int
+#define TRANSRANGERS_FLATTEN __attribute__((flatten))
+#define TRANSRANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))
 #else
 #define TRANSRANGERS_FLATTEN -> int
 #define TRANSRANGERS_MUTABLE_FLATTEN mutable -> int
