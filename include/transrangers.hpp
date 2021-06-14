@@ -212,14 +212,14 @@ auto join(Ranger rgr)
       if(osrgr){
         if(!(*osrgr)(dst))return false;
       }
-      return(rgr([&](const auto& p) TRANSRANGERS_FLATTEN {
+      return rgr([&](const auto& p) TRANSRANGERS_FLATTEN {
         auto srgr=*p;
         if(!srgr(dst)){
           osrgr.emplace(std::move(srgr));
           return false;
         }
         else return true;
-      }));
+      });
   });
 }
 
