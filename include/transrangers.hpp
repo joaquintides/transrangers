@@ -260,7 +260,7 @@ auto zip(Ranger rgr,Rangers... rgrs)
 #ifdef _MSC_VER
           ,auto&... rgrs
 #endif
-        ){
+        ) TRANSRANGERS_FLATTEN {
           return (rgrs([&](const auto& p) TRANSRANGERS_FLATTEN {
             std::get<I+1>(zp.ps)=p;
             return false;
