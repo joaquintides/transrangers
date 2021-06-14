@@ -28,7 +28,7 @@
 #define TRANSANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))
 #endif
 #else
-#define TRANSANGERS_MUTABLE_FLATTEN
+#define TRANSANGERS_MUTABLE_FLATTEN mutable
 #endif
 
 namespace transrangers{
