@@ -28,8 +28,8 @@
 #define TRANSRANGERS_FLATTEN __attribute__((flatten))
 #define TRANSRANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))
 #else
-#define TRANSRANGERS_FLATTEN -> int
-#define TRANSRANGERS_MUTABLE_FLATTEN mutable -> int
+#define TRANSRANGERS_FLATTEN
+#define TRANSRANGERS_MUTABLE_FLATTEN mutable
 #endif
 
 namespace transrangers{
