@@ -212,11 +212,7 @@ auto join(Ranger rgr)
     [=,osrgr=std::optional<subranger>{}]
     (auto dst) TRANSRANGERS_MUTABLE_FLATTEN {
       if(osrgr){
-        auto srgr=std::move(*osrgr);
-        if(!srgr(dst)){
-          osrgr.emplace(std::move(srgr));
-          return false;
-        }
+        if(!(*osrgr)(dst))return false;
       }
       return(rgr([&](const auto& p) TRANSRANGERS_FLATTEN {
         auto srgr=*p;
