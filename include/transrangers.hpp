@@ -21,6 +21,16 @@
 #include <type_traits>
 #include <utility>
 
+#if defined(__GNUC__)
+#if defined(__clang__)
+#define TRANSANGERS_MUTABLE_FLATTEN __attribute__((flatten)) mutable
+#else
+#define TRANSANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))
+#endif
+#else
+#define TRANSANGERS_MUTABLE_FLATTEN
+#endif
+
 namespace transrangers{
 
 template<typename Cursor,typename F> 
@@ -42,7 +52,8 @@ auto all(Range&& rng)
   using std::end;
   using cursor=decltype(begin(rng));
   
-  return ranger<cursor>([first=begin(rng),last=end(rng)](auto dst)mutable{
+  return ranger<cursor>(
+    [first=begin(rng),last=end(rng)](auto dst)TRANSANGERS_MUTABLE_FLATTEN{
     auto it=first;
     while(it!=last)if(!dst(it++)){first=it;return false;}
     return true;
@@ -259,4 +270,5 @@ auto zip(Ranger rgr,Rangers... rgrs)
 
 } /* transrangers */
 
+#undef TRANSANGERS_MUTABLE_FLATTEN
 #endif
