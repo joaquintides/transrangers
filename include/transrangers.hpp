@@ -186,13 +186,11 @@ auto unique(Ranger rgr)
     [=,start=true,p=cursor{}](auto dst) TRANSRANGERS_MUTABLE_FLATTEN {
     if(start){
       start=false;
-      bool cont=false;
       if(rgr([&](const auto& q) TRANSRANGERS_FLATTEN {
         p=q;
-        cont=dst(q);
         return false;
       }))return true;
-      if(!cont)return false;
+      if(!dst(p))return false;
     }
     return rgr([&,prev=p](const auto& q) TRANSRANGERS_MUTABLE_FLATTEN {
       if((*prev==*q)||dst(q)){prev=q;return true;}
