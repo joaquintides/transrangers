@@ -21,20 +21,15 @@
 #include <type_traits>
 #include <utility>
 
-#if defined(__GNUC__)
-#define TRANSRANGERS_FLATTEN __attribute__((flatten))
-#else
-#define TRANSRANGERS_FLATTEN
-#endif
-
-#if defined(__GNUC__)
 #if defined(__clang__)
-#define TRANSRANGERS_MUTABLE_FLATTEN TRANSRANGERS_FLATTEN mutable
+#define TRANSRANGERS_FLATTEN __attribute__((flatten)) -> int
+#define TRANSRANGERS_MUTABLE_FLATTEN  __attribute__((flatten)) mutable -> int
+#elif defined(__GNUC__)
+#define TRANSRANGERS_FLATTEN __attribute__((flatten)) -> int
+#define TRANSRANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))  -> int
 #else
-#define TRANSRANGERS_MUTABLE_FLATTEN mutable TRANSRANGERS_FLATTEN
-#endif
-#else
-#define TRANSRANGERS_MUTABLE_FLATTEN mutable
+#define TRANSRANGERS_FLATTEN -> int
+#define TRANSRANGERS_MUTABLE_FLATTEN mutable -> int
 #endif
 
 namespace transrangers{
