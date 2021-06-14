@@ -22,10 +22,16 @@
 #include <utility>
 
 #if defined(__GNUC__)
-#if defined(__clang__)
-#define TRANSANGERS_MUTABLE_FLATTEN __attribute__((flatten)) mutable
+#define TRANSANGERS_FLATTEN __attribute__((flatten))
 #else
-#define TRANSANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))
+#define TRANSANGERS_FLATTEN
+#endif
+
+#if defined(__GNUC__)
+#if defined(__clang__)
+#define TRANSANGERS_MUTABLE_FLATTEN TRANSANGERS_FLATTEN mutable
+#else
+#define TRANSANGERS_MUTABLE_FLATTEN mutable TRANSANGERS_FLATTEN
 #endif
 #else
 #define TRANSANGERS_MUTABLE_FLATTEN mutable
@@ -53,7 +59,7 @@ auto all(Range&& rng)
   using cursor=decltype(begin(rng));
   
   return ranger<cursor>(
-    [first=begin(rng),last=end(rng)](auto dst)TRANSANGERS_MUTABLE_FLATTEN{
+    [first=begin(rng),last=end(rng)](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
     auto it=first;
     while(it!=last)if(!dst(it++)){first=it;return false;}
     return true;
@@ -91,8 +97,9 @@ auto filter(Pred pred_,Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=,pred=pred_box(pred_)](auto dst)mutable{
-    return rgr([&](const auto& p){
+  return ranger<cursor>(
+    [=,pred=pred_box(pred_)](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
+    return rgr([&](const auto& p) TRANSANGERS_FLATTEN {
       return pred(*p)?dst(p):true;
     });
   });
@@ -127,8 +134,10 @@ auto transform(F f,Ranger rgr)
 {
   using cursor=deref_fun<typename Ranger::cursor,F>;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](const auto& p){return dst(cursor{p,&f});});
+  return ranger<cursor>([=](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
+    return rgr([&](const auto& p) TRANSANGERS_FLATTEN {
+      return dst(cursor{p,&f});
+    });
   });
 }
 
@@ -137,8 +146,8 @@ auto take(int n,Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    if(n)return rgr([&](const auto& p){
+  return ranger<cursor>([=](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
+    if(n)return rgr([&](const auto& p) TRANSANGERS_FLATTEN {
       --n;
       return dst(p)&&(n!=0);
     })||(n==0);
@@ -158,7 +167,7 @@ auto concat(Ranger rgr,Rangers... rgrs)
   using cursor=typename Ranger::cursor;
     
   return ranger<cursor>(
-    [=,cont=false,next=concat(rgrs...)](auto dst)mutable{
+    [=,cont=false,next=concat(rgrs...)](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
       if(!cont){
         if(!(cont=rgr(dst)))return false;
       }
@@ -172,18 +181,19 @@ auto unique(Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=,start=true,p=cursor{}](auto dst)mutable{
+  return ranger<cursor>(
+    [=,start=true,p=cursor{}](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
     if(start){
       start=false;
       bool cont=false;
-      if(rgr([&](const auto& q){
+      if(rgr([&](const auto& q) TRANSANGERS_FLATTEN {
         p=q;
         cont=dst(q);
         return false;
       }))return true;
       if(!cont)return false;
     }
-    return rgr([&,prev=p](const auto& q)mutable{
+    return rgr([&,prev=p](const auto& q) TRANSANGERS_MUTABLE_FLATTEN {
       if((*prev==*q)||dst(q)){prev=q;return true;}
       else{p=q;return false;}
     });
@@ -198,11 +208,11 @@ auto join(Ranger rgr)
   using subranger_cursor=typename subranger::cursor;
     
   return ranger<subranger_cursor>(
-    [=,osrgr=std::optional<subranger>{}](auto dst)mutable{
+    [=,osrgr=std::optional<subranger>{}](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
       if(osrgr){
         if(!(*osrgr)(dst))return false;
       }
-      return(rgr([&](const auto& p){
+      return(rgr([&](const auto& p) TRANSANGERS_FLATTEN {
         auto srgr=*p;
         auto cont=srgr(dst);
         if(!cont)osrgr.emplace(std::move(srgr));
@@ -240,16 +250,16 @@ auto zip(Ranger rgr,Rangers... rgrs)
   using cursor=zip_cursor<Ranger,Rangers...>;
 
   return ranger<cursor>(
-    [=,zp=cursor{}](auto dst)mutable{
+    [=,zp=cursor{}](auto dst) TRANSANGERS_MUTABLE_FLATTEN {
       bool finished=false;
-      return rgr([&](const auto& p){
+      return rgr([&](const auto& p) TRANSANGERS_FLATTEN {
         std::get<0>(zp.ps)=p;
         if([&]<std::size_t... I>(std::index_sequence<I...>
 #ifdef _MSC_VER
           ,auto&... rgrs
 #endif
         ){
-          return (rgrs([&](const auto& p){
+          return (rgrs([&](const auto& p) TRANSANGERS_FLATTEN {
             std::get<I+1>(zp.ps)=p;
             return false;
           })||...); 
@@ -271,4 +281,5 @@ auto zip(Ranger rgr,Rangers... rgrs)
 } /* transrangers */
 
 #undef TRANSANGERS_MUTABLE_FLATTEN
+#undef TRANSANGERS_FLATTEN
 #endif
