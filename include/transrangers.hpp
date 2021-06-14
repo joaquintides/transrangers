@@ -17,6 +17,7 @@
 
 #include <iterator>
 #include <optional>
+#include <range/v3/utility/semiregular_box.hpp>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -208,6 +209,7 @@ auto join(Ranger rgr)
   using subranger=std::remove_cvref_t<decltype(*std::declval<cursor>())>; 
   using subranger_cursor=typename subranger::cursor;
     
+#if 0
   return ranger<subranger_cursor>(
     [=,osrgr=std::optional<subranger>{}]
     (auto dst) TRANSRANGERS_MUTABLE_FLATTEN {
@@ -220,7 +222,25 @@ auto join(Ranger rgr)
         if(!cont)osrgr.emplace(std::move(srgr));
         return cont;
       }));
-  });    
+  });
+#else
+  return ranger<subranger_cursor>(
+    [=,cont=true,bsrgr=ranges::semiregular_box<subranger>{}]
+    (auto dst) TRANSRANGERS_MUTABLE_FLATTEN {
+      if(!cont){
+        if(!bsrgr(dst))return false;
+      }
+      return(rgr([&](const auto& p) TRANSRANGERS_FLATTEN {
+        auto srgr=*p;
+        if(!srgr(dst)){
+          cont=false;
+          bsrgr=std::move(srgr);
+          return false;
+        }
+        else return true;
+      }));
+  });  
+#endif
 }
 
 template<typename Ranger>
