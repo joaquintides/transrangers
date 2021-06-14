@@ -28,8 +28,8 @@
 #define TRANSRANGERS_FLATTEN __attribute__((flatten))
 #define TRANSRANGERS_MUTABLE_FLATTEN mutable __attribute__((flatten))
 #else
-#define TRANSRANGERS_FLATTEN
-#define TRANSRANGERS_MUTABLE_FLATTEN mutable
+#define TRANSRANGERS_FLATTEN [[msvc::forceinline]]
+#define TRANSRANGERS_MUTABLE_FLATTEN mutable [[msvc::forceinline]]
 #endif
 
 namespace transrangers{
