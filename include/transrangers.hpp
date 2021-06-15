@@ -196,8 +196,8 @@ auto unique(Ranger rgr)
 
 struct identity_adaption
 {
-  static auto adapt(auto&& rgr){
-    return std::forward<decltype(rgr)>(rgr);
+  static auto adapt(auto&& srgr){
+    return std::forward<decltype(srgr)>(srgr);
   };
 };
 
@@ -228,8 +228,8 @@ auto join(Ranger rgr)
 
 struct all_adaption
 {
-  static auto adapt(auto&& rgr){
-    return all(std::forward<decltype(rgr)>(rgr));
+  static auto adapt(auto&& srgn){
+    return all(std::forward<decltype(srgn)>(srgn));
   };
 };
 
