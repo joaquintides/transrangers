@@ -194,12 +194,19 @@ auto unique(Ranger rgr)
   });
 }
 
-template<typename Ranger,typename Adaptor>
-auto join(Ranger rgr,Adaptor adaptor)
+struct identity_adaption
+{
+  static auto adapt(auto&& rgr){
+    return std::forward<decltype(rgr)>(rgr);
+  };
+};
+
+template<typename Ranger,typename Adaption=identity_adaption>
+auto join(Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
   using subranger=std::remove_cvref_t<
-    decltype(adaptor(*std::declval<const cursor&>()))>; 
+    decltype(Adaption::adapt(*std::declval<const cursor&>()))>; 
   using subranger_cursor=typename subranger::cursor;
     
   return ranger<subranger_cursor>(
@@ -209,7 +216,7 @@ auto join(Ranger rgr,Adaptor adaptor)
       if(!(*osrgr)(dst))return false;
     }
     return rgr([&](const auto& p) TRANSRANGERS_HOT {
-      auto srgr=adaptor(*p);
+      auto srgr=Adaption::adapt(*p);
       if(!srgr(dst)){
         osrgr.emplace(std::move(srgr));
         return false;
@@ -219,24 +226,17 @@ auto join(Ranger rgr,Adaptor adaptor)
   });
 }
 
-template<typename Ranger>
-auto join(Ranger rgr)
+struct all_adaption
 {
-  auto identity_adaptor=[](auto&& rgr){
-    return std::forward<decltype(rgr)>(rgr);
+  static auto adapt(auto&& rgr){
+    return all(std::forward<decltype(rgr)>(rgr));
   };
-  
-  return join(std::move(rgr),identity_adaptor);
-}
+};
 
 template<typename Ranger>
 auto ranger_join(Ranger rgr)
 {
-  auto all_adaptor=[](auto&& srng){
-    return all(std::forward<decltype(srng)>(srng));
-  };
-
-  return join(std::move(rgr),all_adaptor);
+  return join<Ranger,all_adaption>(std::move(rgr));
 }
 
 template<typename... Rangers>
