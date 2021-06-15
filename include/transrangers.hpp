@@ -275,6 +275,16 @@ auto zip(Ranger rgr,Rangers... rgrs)
   );
 }
 
+template<typename Ranger,typename T>
+T accumulate(Ranger rgr,T init)
+{
+  rgr([&](const auto& p) TRANSRANGERS_HOT{
+    init=std::move(init)+*p;
+    return true;
+  });
+  return init;
+}
+
 } /* transrangers */
 
 #undef TRANSRANGERS_HOT_MUTABLE

@@ -60,10 +60,8 @@ static void test1_transrangers(benchmark::State& st)
   for(auto _:st){
     using namespace transrangers;
       
-    int  res=0;
-    auto rgr=transform(x3,filter(is_even,all(rng1)));
-    rgr([&](const auto& p){res+=*p;return true;});
-    ret=res;
+    ret=accumulate(
+      transform(x3,filter(is_even,all(rng1))),0);
   }
 }
 BENCHMARK(test1_transrangers);
@@ -105,10 +103,8 @@ static void test2_transrangers(benchmark::State& st)
   for(auto _:st){
     using namespace transrangers;
       
-    int  res=0;
-    auto rgr=transform(x3,filter(is_even,take(n,concat(all(rng2),all(rng2)))));
-    rgr([&](const auto& p){res+=*p;return true;});
-    ret=res;
+    ret=accumulate(
+      transform(x3,filter(is_even,take(n,concat(all(rng2),all(rng2))))),0);
   }
 }
 BENCHMARK(test2_transrangers);
@@ -156,10 +152,8 @@ static void test3_transrangers(benchmark::State& st)
   for(auto _:st){
     using namespace transrangers;
       
-    int  res=0;
-    auto rgr=filter(is_even,unique(all(rng3)));
-    rgr([&](const auto& p){res+=*p;return true;});
-    ret=res;
+    ret=accumulate(
+      filter(is_even,unique(all(rng3))),0);
   }
 }
 BENCHMARK(test3_transrangers);
@@ -210,10 +204,8 @@ static void test4_transrangers(benchmark::State& st)
   for(auto _:st){
     using namespace transrangers;
       
-    int  res=0;
-    auto rgr=transform(x3,filter(is_even,unique(ranger_join(all(rng4)))));
-    rgr([&](const auto& p){res+=*p;return true;});
-    ret=res;
+    ret=accumulate(
+      transform(x3,filter(is_even,unique(ranger_join(all(rng4))))),0);
   }
 }
 BENCHMARK(test4_transrangers);
@@ -254,14 +246,12 @@ static void test5_transrangers(benchmark::State& st)
   for(auto _:st){
     using namespace transrangers;
       
-    int  res=0;
     auto unique_adaptor=[](auto&& srng){
       return unique(all(std::forward<decltype(srng)>(srng)));
     };
-    auto rgr=
-      transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5)))));
-    rgr([&](const auto& p){res+=*p;return true;});
-    ret=res;
+    ret=accumulate(
+      transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5))))),
+      0);
   }
 }
 BENCHMARK(test5_transrangers);
@@ -300,12 +290,9 @@ static void test6_transrangers(benchmark::State& st)
   for(auto _:st){
     using namespace transrangers;
       
-    int res=0;
-    auto rgr=
+    ret=accumulate(
       filter(divisible_by_3,
-        transform(sum,zip(all(rng6),transform(x3,all(rng6)))));
-    rgr([&](const auto& p){res+=*p;return true;});
-    ret=res;
+        transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
   }
 }
 BENCHMARK(test6_transrangers);
