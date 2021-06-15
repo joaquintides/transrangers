@@ -55,8 +55,7 @@ auto all(Range&& rng)
   
   return ranger<cursor>(
     [first=begin(rng),last=end(rng)](auto dst) TRANSRANGERS_HOT_MUTABLE {
-    auto it=first;
-    while(it!=last)if(!dst(it++)){first=it;return false;}
+    while(first!=last)if(!dst(first++))return false;
     return true;
   });
 }
