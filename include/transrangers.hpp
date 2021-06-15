@@ -204,15 +204,17 @@ auto join(Ranger rgr)
   return ranger<subranger_cursor>(
     [=,osrgr=std::optional<subranger>{}]
     (auto dst) TRANSRANGERS_HOT_MUTABLE {
-    if(osrgr)goto label;
-    for(;;){
-      if(rgr([&](const auto& p) TRANSRANGERS_HOT {
-        osrgr.emplace(*p);
-        return false;
-      }))return true;
-    label:
+    if(osrgr){
       if(!(*osrgr)(dst))return false;
     }
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
+      auto srgr=*p;
+      if(!srgr(dst)){
+        osrgr.emplace(std::move(srgr));
+        return false;
+      }
+      else return true;
+    });
   });
 }
 
