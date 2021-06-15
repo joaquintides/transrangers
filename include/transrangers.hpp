@@ -221,11 +221,25 @@ auto join(Ranger rgr)
 template<typename Ranger>
 auto ranger_join(Ranger rgr)
 {
-  auto all_adaptor=[](auto&& srng){
-    return all(std::forward<decltype(srng)>(srng));
-  };
-
-  return join(transform(all_adaptor,rgr));
+  using cursor=typename Ranger::cursor;
+  using subranger=decltype(all(*std::declval<cursor>())); 
+  using subranger_cursor=typename subranger::cursor;
+    
+  return ranger<subranger_cursor>(
+    [=,osrgr=std::optional<subranger>{}]
+    (auto dst) TRANSRANGERS_HOT_MUTABLE {
+    if(osrgr){
+      if(!(*osrgr)(dst))return false;
+    }
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
+      auto srgr=all(*p);
+      if(!srgr(dst)){
+        osrgr.emplace(std::move(srgr));
+        return false;
+      }
+      else return true;
+    });
+  });
 }
 
 template<typename... Rangers>
