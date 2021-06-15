@@ -45,7 +45,7 @@ auto ranger(F f)
 {
   return ranger_class<Cursor,F>{f};
 }
-    
+
 template<typename Range>
 auto all(Range&& rng)
 {
@@ -93,7 +93,7 @@ auto filter(Pred pred_,Ranger rgr)
     
   return ranger<cursor>(
     [=,pred=pred_box(pred_)](auto dst) TRANSRANGERS_HOT_MUTABLE {
-    return rgr([&,dst](const auto& p) TRANSRANGERS_HOT {
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
       return pred(*p)?dst(p):true;
     });
   });
@@ -129,7 +129,7 @@ auto transform(F f,Ranger rgr)
   using cursor=deref_fun<typename Ranger::cursor,F>;
     
   return ranger<cursor>([=](auto dst) TRANSRANGERS_HOT_MUTABLE {
-    return rgr([&,dst](const auto& p) TRANSRANGERS_HOT {
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
       return dst(cursor{p,&f});
     });
   });
@@ -141,7 +141,7 @@ auto take(int n,Ranger rgr)
   using cursor=typename Ranger::cursor;
     
   return ranger<cursor>([=](auto dst) TRANSRANGERS_HOT_MUTABLE {
-    if(n)return rgr([&,dst](const auto& p) TRANSRANGERS_HOT {
+    if(n)return rgr([&](const auto& p) TRANSRANGERS_HOT {
       --n;
       return dst(p)&&(n!=0);
     })||(n==0);
@@ -186,7 +186,7 @@ auto unique(Ranger rgr)
       }))return true;
       if(!dst(p))return false;
     }
-    return rgr([&,dst,prev=p](const auto& q) TRANSRANGERS_HOT_MUTABLE {
+    return rgr([&,prev=p](const auto& q) TRANSRANGERS_HOT_MUTABLE {
       if((*prev==*q)||dst(q)){prev=q;return true;}
       else{p=q;return false;}
     });
@@ -259,7 +259,7 @@ auto zip(Ranger rgr,Rangers... rgrs)
   return ranger<cursor>(
     [=,zp=cursor{}](auto dst) TRANSRANGERS_HOT_MUTABLE {
       bool finished=false;
-      return rgr([&,dst](const auto& p) TRANSRANGERS_HOT {
+      return rgr([&](const auto& p) TRANSRANGERS_HOT {
         std::get<0>(zp.ps)=p;
         if([&]<std::size_t... I>(std::index_sequence<I...>
 #ifdef _MSC_VER
