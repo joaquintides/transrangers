@@ -43,7 +43,7 @@ auto rng1=[]{
   return rng1;
 }();
 
-static void test1_handwritten(benchmark::State& st)
+auto test1_handwritten=[](benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
@@ -52,10 +52,10 @@ static void test1_handwritten(benchmark::State& st)
     }
     ret=res;
   }
-}
+};
 BENCHMARK(test1_handwritten);
 
-static void test1_transrangers(benchmark::State& st)
+auto test1_transrangers=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace transrangers;
@@ -63,10 +63,10 @@ static void test1_transrangers(benchmark::State& st)
     ret=accumulate(
       transform(x3,filter(is_even,all(rng1))),0);
   }
-}
+};
 BENCHMARK(test1_transrangers);
 
-static void test1_rangev3(benchmark::State& st)
+auto test1_rangev3=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace ranges::views;
@@ -74,13 +74,13 @@ static void test1_rangev3(benchmark::State& st)
     ret=ranges::accumulate(
       rng1|filter(is_even)|transform(x3),0);
   }
-}
+};
 BENCHMARK(test1_rangev3);
 
 auto rng2=rng1;
 int n=rng2.size()+rng2.size()/2;
 
-static void test2_handwritten(benchmark::State& st)
+auto test2_handwritten=[](benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
@@ -95,10 +95,10 @@ static void test2_handwritten(benchmark::State& st)
     f();f();
     ret=res;
   }
-}
+};
 BENCHMARK(test2_handwritten);
 
-static void test2_transrangers(benchmark::State& st)
+auto test2_transrangers=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace transrangers;
@@ -106,10 +106,10 @@ static void test2_transrangers(benchmark::State& st)
     ret=accumulate(
       transform(x3,filter(is_even,take(n,concat(all(rng2),all(rng2))))),0);
   }
-}
+};
 BENCHMARK(test2_transrangers);
 
-static void test2_rangev3(benchmark::State& st)
+auto test2_rangev3=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace ranges::views;
@@ -117,7 +117,7 @@ static void test2_rangev3(benchmark::State& st)
     ret=ranges::accumulate(
       concat(rng2,rng2)|take(n)|filter(is_even)|transform(x3),0);
   }
-}
+};
 BENCHMARK(test2_rangev3);
 
 auto rng3=[]{
@@ -131,7 +131,7 @@ auto rng3=[]{
   return rng3;
 }();
 
-static void test3_handwritten(benchmark::State& st)
+auto test3_handwritten=[](benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
@@ -144,10 +144,10 @@ static void test3_handwritten(benchmark::State& st)
     }
     ret=res;
   }
-}
+};
 BENCHMARK(test3_handwritten);
 
-static void test3_transrangers(benchmark::State& st)
+auto test3_transrangers=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace transrangers;
@@ -155,10 +155,10 @@ static void test3_transrangers(benchmark::State& st)
     ret=accumulate(
       filter(is_even,unique(all(rng3))),0);
   }
-}
+};
 BENCHMARK(test3_transrangers);
 
-static void test3_rangev3(benchmark::State& st)
+auto test3_rangev3=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace ranges::views;
@@ -166,7 +166,7 @@ static void test3_rangev3(benchmark::State& st)
     ret=ranges::accumulate(
       rng3|unique|filter(is_even),0);
   }
-}
+};
 BENCHMARK(test3_rangev3);
 
 auto rng4=[]{
@@ -181,7 +181,7 @@ auto rng4=[]{
   return rng4;
 }();
 
-static void test4_handwritten(benchmark::State& st)
+auto test4_handwritten=[](benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
@@ -196,10 +196,10 @@ static void test4_handwritten(benchmark::State& st)
     }
     ret=res;
   }
-}
+};
 BENCHMARK(test4_handwritten);
 
-static void test4_transrangers(benchmark::State& st)
+auto test4_transrangers=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace transrangers;
@@ -207,10 +207,10 @@ static void test4_transrangers(benchmark::State& st)
     ret=accumulate(
       transform(x3,filter(is_even,unique(ranger_join(all(rng4))))),0);
   }
-}
+};
 BENCHMARK(test4_transrangers);
 
-static void test4_rangev3(benchmark::State& st)
+auto test4_rangev3=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace ranges::views;
@@ -218,12 +218,12 @@ static void test4_rangev3(benchmark::State& st)
     ret=ranges::accumulate(
       rng4|join|unique|filter(is_even)|transform(x3),0);
   }
-}
+};
 BENCHMARK(test4_rangev3);
 
 auto rng5=rng4;
 
-static void test5_handwritten(benchmark::State& st)
+auto test5_handwritten=[](benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
@@ -238,10 +238,10 @@ static void test5_handwritten(benchmark::State& st)
     }
     ret=res;
   }
-}
+};
 BENCHMARK(test5_handwritten);
 
-static void test5_transrangers(benchmark::State& st)
+auto test5_transrangers=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace transrangers;
@@ -253,10 +253,10 @@ static void test5_transrangers(benchmark::State& st)
       transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5))))),
       0);
   }
-}
+};
 BENCHMARK(test5_transrangers);
 
-static void test5_rangev3(benchmark::State& st)
+auto test5_rangev3=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace ranges::views;
@@ -265,14 +265,14 @@ static void test5_rangev3(benchmark::State& st)
     ret=ranges::accumulate(
       rng5|transform(unique_adaptor)|join|filter(is_even)|transform(x3),0);
   }
-}
+};
 BENCHMARK(test5_rangev3);
 
 auto divisible_by_3=[](int x){return x%3==0;};
 auto sum=[](const auto& p){return std::get<0>(p)+std::get<1>(p);};
 auto rng6=rng1;
 
-static void test6_handwritten(benchmark::State& st)
+auto test6_handwritten=[](benchmark::State& st)
 {
   for(auto _:st){
     int res=0;
@@ -282,10 +282,10 @@ static void test6_handwritten(benchmark::State& st)
     }
     ret=res;
   }
-}
+};
 BENCHMARK(test6_handwritten);
 
-static void test6_transrangers(benchmark::State& st)
+auto test6_transrangers=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace transrangers;
@@ -294,10 +294,10 @@ static void test6_transrangers(benchmark::State& st)
       filter(divisible_by_3,
         transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
   }
-}
+};
 BENCHMARK(test6_transrangers);
 
-static void test6_rangev3(benchmark::State& st)
+auto test6_rangev3=[](benchmark::State& st)
 {
   for(auto _:st){
     using namespace ranges::views;
@@ -305,7 +305,7 @@ static void test6_rangev3(benchmark::State& st)
     ret=ranges::accumulate(
       zip(rng6,rng6|transform(x3))|transform(sum)|filter(divisible_by_3),0);
   }
-}
+};
 BENCHMARK(test6_rangev3);
 
 BENCHMARK_MAIN();
