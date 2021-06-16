@@ -173,7 +173,7 @@ auto concat(Ranger rgr,Rangers... rgrs)
 }
     
 template<typename Dst,typename Cursor>
-struct unique_loop
+struct unique_loop_class
 {
   int operator()(const auto& q)
   {
@@ -182,7 +182,7 @@ struct unique_loop
     return (*p==*q)||dst(q);
   }
   
-  ~unique_loop(){*pp=prev;}
+  ~unique_loop_class(){*pp=prev;}
   
   Dst&    dst;
   Cursor* pp;
@@ -190,7 +190,10 @@ struct unique_loop
 };
 
 template<typename Dst,typename Cursor>
-unique_loop(Dst& d,Cursor* pp)->unique_loop<Dst,Cursor>;
+unique_loop_class<Dst,Cursor> unique_loop(Dst& d,Cursor* pp)
+{
+  return {d,pp};
+}
 
 template<typename Ranger>
 auto unique(Ranger rgr)
@@ -213,7 +216,7 @@ auto unique(Ranger rgr)
       else{p=q;return false;}
     });
 #else
-    return rgr(unique_loop{dst,&p});
+    return rgr(unique_loop(dst,&p));
 #endif    
   });
 }
