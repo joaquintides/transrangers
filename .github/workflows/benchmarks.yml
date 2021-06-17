@@ -69,6 +69,7 @@ jobs:
       - name: System tuning
         run: |
           sudo python -m pip install pyperf
+          sudo modprobe msr
           sudo python -m pyperf system tune
 
       - name: Run tests
