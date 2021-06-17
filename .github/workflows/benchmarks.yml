@@ -38,25 +38,6 @@ jobs:
           sudo -E apt-add-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update
           sudo apt install -y ${{matrix.install}}
-      - name: Install google/benchmark
-        run: |
-          mkdir -p /opt/github
-          cd /opt/github
-          git clone https://github.com/google/benchmark.git
-          git clone https://github.com/google/googletest.git benchmark/googletest
-          cd benchmark
-          cmake -E make_directory "build"
-          cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
-          # or, starting with CMake 3.13, use a simpler form:
-          # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
-          # Can these steps be skipped?
-          # # Build the library.
-          # cmake --build "build" --config Release
-          # # run the tests to check the build.
-          # cmake -E chdir "build" ctest --build-config Release
-
-          # install the library globally
-          sudo cmake --build "build" --config Release --target install
 
       - name: Install range-v3
         run: |
@@ -66,10 +47,15 @@ jobs:
           cd range-v3/include
           sudo cp -rp * /usr/local/include/
 
+      - name: Install nanobench
+        run: |
+          cd $GITHUB_WORKSPACE
+          sudo cp nanobench/src/include/nanobench.h /usr/local/include/
+
       - name: Install transrangers
         run: |
           cd $GITHUB_WORKSPACE
-          sudo cp include/transrangers.hpp nanobench/src/include/ /usr/local/include/
+          sudo cp include/transrangers.hpp /usr/local/include/
 
       - name: Compile
         run: |
