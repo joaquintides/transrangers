@@ -249,7 +249,7 @@ auto test6_rangev3=[]
 
 int main()
 {
-  auto bench=ankerl::nanobench::Bench().minEpochIterations(10);
+  auto bench=ankerl::nanobench::Bench().minEpochIterations(100);
   
   bench.run("test1_handwritten",test1_handwritten);
   bench.run("test1_transrangers",test1_transrangers);
