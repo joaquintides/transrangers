@@ -213,11 +213,7 @@ auto join(Ranger rgr)
     [=,osrgr=std::optional<subranger>{}]
     (auto dst) TRANSRANGERS_HOT_MUTABLE {
     if(osrgr){
-      auto srgr=*osrgr;
-      if(!srgr(dst)){
-        osrgr.emplace(std::move(srgr));
-        return false;
-      }
+      if(!(*osrgr)(dst))return false;
     }
     return rgr([&](const auto& p) TRANSRANGERS_HOT {
       auto srgr=Adaption::adapt(*p);
