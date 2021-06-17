@@ -171,29 +171,6 @@ auto concat(Ranger rgr,Rangers... rgrs)
     }
   );
 }
-    
-template<typename Dst,typename Cursor>
-struct unique_loop_class
-{
-  int operator()(const auto& q)
-  {
-    auto p=prev;
-    prev=q;
-    return (*p==*q)||dst(q);
-  }
-  
-  ~unique_loop_class(){*pp=prev;}
-  
-  Dst&    dst;
-  Cursor* pp;
-  Cursor  prev=*pp;
-};
-
-template<typename Dst,typename Cursor>
-unique_loop_class<Dst,Cursor> unique_loop(Dst& d,Cursor* pp)
-{
-  return {d,pp};
-}
 
 template<typename Ranger>
 auto unique(Ranger rgr)
@@ -210,14 +187,10 @@ auto unique(Ranger rgr)
       }))return true;
       if(!dst(p))return false;
     }
-#if 0
     return rgr([&,prev=p](const auto& q) TRANSRANGERS_HOT_MUTABLE {
       if((*prev==*q)||dst(q)){prev=q;return true;}
       else{p=q;return false;}
     });
-#else
-    return rgr(unique_loop(dst,&p));
-#endif    
   });
 }
 
