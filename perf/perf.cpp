@@ -254,7 +254,7 @@ int main()
       zip(rng6,rng6|transform(x3))|transform(sum)|filter(divisible_by_3),0);
   };
 
-  auto bench=ankerl::nanobench::Bench().minEpochIterations(10);
+  auto bench=ankerl::nanobench::Bench().minEpochIterations(50);
   
   bench.run("test1_handwritten",test1_handwritten);
   bench.run("test1_transrangers",test1_transrangers);
