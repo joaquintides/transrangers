@@ -16,13 +16,13 @@ jobs:
       matrix:
         include:
           - compiler: g++-11
-            compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
+            compileroptions: -std=c++2a -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
             install: g++-11
           - compiler: clang++
-            compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
+            compileroptions: -std=c++2a -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
@@ -112,8 +112,6 @@ jobs:
         run: |
           cd %GITHUB_WORKSPACE%
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          set INCLUDE=%INCLUDE%;C:\Program Files (x86)\benchmark\include
-          set LIB=%LIB%;C:\Program Files (x86)\benchmark\lib
           set INCLUDE=%INCLUDE%;C:\opt\github\range-v3\include
           set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\include
           set INCLUDE=%INCLUDE%;C:\opt\github\nanobench\src\include
