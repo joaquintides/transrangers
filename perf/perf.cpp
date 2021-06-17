@@ -195,17 +195,20 @@ auto test5_handwritten=[]
   ret=res;
 };
 
-auto test5_transrangers=[]
+auto rangev3_unique_adaptor=[](auto&& srng)
 {
-  using namespace transrangers;
-    
-  auto unique_adaptor=[](auto&& srng){
-    return unique(all(std::forward<decltype(srng)>(srng)));
-  };
-  ret=accumulate(
-    transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5))))),
+  return srng|ranges::views::unique;
+};
+
+auto test5_rangev3=[]
+{
+  using namespace ranges::views;
+
+  ret=ranges::accumulate(
+    rng5|transform(rangev3_unique_adaptor)|join|filter(is_even)|transform(x3),
     0);
 };
+
 
 auto test5_rangev3=[]
 {
