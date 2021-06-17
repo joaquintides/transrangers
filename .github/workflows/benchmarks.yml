@@ -66,6 +66,10 @@ jobs:
           ${{matrix.compiler}} --version
           ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}} -o ${{matrix.outputfile}}
 
+      - name: System tuning
+        run: |
+          python -m pip install pyperf 
+
       - name: Run tests
         run: |
           ./${{matrix.outputfile}}
