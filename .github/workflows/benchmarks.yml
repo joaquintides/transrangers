@@ -69,7 +69,7 @@ jobs:
       - name: System tuning
         run: |
           python -m pip install pyperf
-          python pyperf system tune
+          pyperf system tune
 
       - name: Run tests
         run: |
