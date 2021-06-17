@@ -69,7 +69,7 @@ jobs:
       - name: Install transrangers
         run: |
           cd $GITHUB_WORKSPACE
-          sudo cp include/transrangers.hpp /usr/local/include/
+          sudo cp include/transrangers.hpp nanobench/src/include/ /usr/local/include/
 
       - name: Compile
         run: |
@@ -142,6 +142,7 @@ jobs:
           set LIB=%LIB%;C:\Program Files (x86)\benchmark\lib
           set INCLUDE=%INCLUDE%;C:\opt\github\range-v3\include
           set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\include
+          set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\nanobench\src\include
           echo %INCLUDE%
           ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}}
 

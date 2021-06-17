@@ -9,8 +9,10 @@
  */
 
 #include <algorithm>
-#include <benchmark/benchmark.h>
 #include <functional>
+#include <iostream>
+#define ANKERL_NANOBENCH_IMPLEMENT
+#include <nanobench.h>
 #include <numeric>
 #include <range/v3/numeric/accumulate.hpp>
 #include <range/v3/view/concat.hpp>
@@ -23,15 +25,6 @@
 #include <transrangers.hpp>
 #include <vector>
 
-#ifdef _WIN32
-#pragma comment ( lib, "Shlwapi.lib" )
-#ifdef _DEBUG
-#pragma comment ( lib, "benchmarkd.lib" )
-#else
-#pragma comment ( lib, "benchmark.lib" )
-#endif
-#endif
-
 volatile int ret;
 
 auto is_even=[](int x){return x%2==0;};
@@ -43,82 +36,64 @@ auto rng1=[]{
   return rng1;
 }();
 
-auto test1_handwritten=[](benchmark::State& st)
+auto test1_handwritten=[]
 {
-  for(auto _:st){
-    int res=0;
-    for(auto x:rng1){
-      if(is_even(x))res+=x3(x);
-    }
-    ret=res;
+  int res=0;
+  for(auto x:rng1){
+    if(is_even(x))res+=x3(x);
   }
+  ret=res;
 };
-BENCHMARK(test1_handwritten);
 
-auto test1_transrangers=[](benchmark::State& st)
+auto test1_transrangers=[]
 {
-  for(auto _:st){
-    using namespace transrangers;
-      
-    ret=accumulate(
-      transform(x3,filter(is_even,all(rng1))),0);
-  }
+  using namespace transrangers;
+    
+  ret=accumulate(
+    transform(x3,filter(is_even,all(rng1))),0);
 };
-BENCHMARK(test1_transrangers);
 
-auto test1_rangev3=[](benchmark::State& st)
+auto test1_rangev3=[]
 {
-  for(auto _:st){
-    using namespace ranges::views;
+  using namespace ranges::views;
 
-    ret=ranges::accumulate(
-      rng1|filter(is_even)|transform(x3),0);
-  }
+  ret=ranges::accumulate(
+    rng1|filter(is_even)|transform(x3),0);
 };
-BENCHMARK(test1_rangev3);
 
 auto rng2=rng1;
 int n=rng2.size()+rng2.size()/2;
 
-auto test2_handwritten=[](benchmark::State& st)
+auto test2_handwritten=[]
 {
-  for(auto _:st){
-    int res=0;
-    int m=n;
-    auto f=[&]{
-      for(auto first=std::begin(rng2),last=std::end(rng2);
-          m&&first!=last;--m,++first){
-        auto&& x=*first;
-        if(is_even(x))res+=x3(x);
-      }
-    };
-    f();f();
-    ret=res;
-  }
+  int res=0;
+  int m=n;
+  auto f=[&]{
+    for(auto first=std::begin(rng2),last=std::end(rng2);
+        m&&first!=last;--m,++first){
+      auto&& x=*first;
+      if(is_even(x))res+=x3(x);
+    }
+  };
+  f();f();
+  ret=res;
 };
-BENCHMARK(test2_handwritten);
 
-auto test2_transrangers=[](benchmark::State& st)
+auto test2_transrangers=[]
 {
-  for(auto _:st){
-    using namespace transrangers;
-      
-    ret=accumulate(
-      transform(x3,filter(is_even,take(n,concat(all(rng2),all(rng2))))),0);
-  }
+  using namespace transrangers;
+    
+  ret=accumulate(
+    transform(x3,filter(is_even,take(n,concat(all(rng2),all(rng2))))),0);
 };
-BENCHMARK(test2_transrangers);
 
-auto test2_rangev3=[](benchmark::State& st)
+auto test2_rangev3=[]
 {
-  for(auto _:st){
-    using namespace ranges::views;
+  using namespace ranges::views;
 
-    ret=ranges::accumulate(
-      concat(rng2,rng2)|take(n)|filter(is_even)|transform(x3),0);
-  }
+  ret=ranges::accumulate(
+    concat(rng2,rng2)|take(n)|filter(is_even)|transform(x3),0);
 };
-BENCHMARK(test2_rangev3);
 
 auto rng3=[]{
   std::vector<int> rng3;
@@ -131,43 +106,34 @@ auto rng3=[]{
   return rng3;
 }();
 
-auto test3_handwritten=[](benchmark::State& st)
+auto test3_handwritten=[]
 {
-  for(auto _:st){
-    int res=0;
-    int x=rng3[0]+1;
-    for(int y:rng3){
-      if(y!=x){
-        x=y;
-        if(is_even(x))res+=x;
-      }
+  int res=0;
+  int x=rng3[0]+1;
+  for(int y:rng3){
+    if(y!=x){
+      x=y;
+      if(is_even(x))res+=x;
     }
-    ret=res;
   }
+  ret=res;
 };
-BENCHMARK(test3_handwritten);
 
-auto test3_transrangers=[](benchmark::State& st)
+auto test3_transrangers=[]
 {
-  for(auto _:st){
-    using namespace transrangers;
-      
-    ret=accumulate(
-      filter(is_even,unique(all(rng3))),0);
-  }
+  using namespace transrangers;
+    
+  ret=accumulate(
+    filter(is_even,unique(all(rng3))),0);
 };
-BENCHMARK(test3_transrangers);
 
-auto test3_rangev3=[](benchmark::State& st)
+auto test3_rangev3=[]
 {
-  for(auto _:st){
-    using namespace ranges::views;
+  using namespace ranges::views;
 
-    ret=ranges::accumulate(
-      rng3|unique|filter(is_even),0);
-  }
+  ret=ranges::accumulate(
+    rng3|unique|filter(is_even),0);
 };
-BENCHMARK(test3_rangev3);
 
 auto rng4=[]{
   std::vector<int> srng;
@@ -181,131 +147,134 @@ auto rng4=[]{
   return rng4;
 }();
 
-auto test4_handwritten=[](benchmark::State& st)
+auto test4_handwritten=[]
 {
-  for(auto _:st){
-    int res=0;
-    int x=rng4[0][0]+1;
-    for(auto&& srng:rng4){
-      for(int y:srng){
-        if(y!=x){
-          x=y;
-          if(is_even(x))res+=x3(x);
-        }
+  int res=0;
+  int x=rng4[0][0]+1;
+  for(auto&& srng:rng4){
+    for(int y:srng){
+      if(y!=x){
+        x=y;
+        if(is_even(x))res+=x3(x);
       }
     }
-    ret=res;
   }
+  ret=res;
 };
-BENCHMARK(test4_handwritten);
 
-auto test4_transrangers=[](benchmark::State& st)
+auto test4_transrangers=[]
 {
-  for(auto _:st){
-    using namespace transrangers;
-      
-    ret=accumulate(
-      transform(x3,filter(is_even,unique(ranger_join(all(rng4))))),0);
-  }
+  using namespace transrangers;
+    
+  ret=accumulate(
+    transform(x3,filter(is_even,unique(ranger_join(all(rng4))))),0);
 };
-BENCHMARK(test4_transrangers);
 
-auto test4_rangev3=[](benchmark::State& st)
+auto test4_rangev3=[]
 {
-  for(auto _:st){
-    using namespace ranges::views;
+  using namespace ranges::views;
 
-    ret=ranges::accumulate(
-      rng4|join|unique|filter(is_even)|transform(x3),0);
-  }
+  ret=ranges::accumulate(
+    rng4|join|unique|filter(is_even)|transform(x3),0);
 };
-BENCHMARK(test4_rangev3);
 
 auto rng5=rng4;
 
-auto test5_handwritten=[](benchmark::State& st)
+auto test5_handwritten=[]
 {
-  for(auto _:st){
-    int res=0;
-    for(auto&& srng:rng5){
-      int x=srng[0]+1;
-      for(int y:srng){
-        if(y!=x){
-          x=y;
-          if(is_even(x))res+=x3(x);
-        }
+  int res=0;
+  for(auto&& srng:rng5){
+    int x=srng[0]+1;
+    for(int y:srng){
+      if(y!=x){
+        x=y;
+        if(is_even(x))res+=x3(x);
       }
     }
-    ret=res;
   }
+  ret=res;
 };
-BENCHMARK(test5_handwritten);
 
-auto test5_transrangers=[](benchmark::State& st)
+auto test5_transrangers=[]
 {
-  for(auto _:st){
-    using namespace transrangers;
-      
-    auto unique_adaptor=[](auto&& srng){
-      return unique(all(std::forward<decltype(srng)>(srng)));
-    };
-    ret=accumulate(
-      transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5))))),
-      0);
-  }
+  using namespace transrangers;
+    
+  auto unique_adaptor=[](auto&& srng){
+    return unique(all(std::forward<decltype(srng)>(srng)));
+  };
+  ret=accumulate(
+    transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5))))),
+    0);
 };
-BENCHMARK(test5_transrangers);
 
-auto test5_rangev3=[](benchmark::State& st)
+auto test5_rangev3=[]
 {
-  for(auto _:st){
-    using namespace ranges::views;
+  using namespace ranges::views;
 
-    auto unique_adaptor=[](auto&& srng){return srng|unique;};
-    ret=ranges::accumulate(
-      rng5|transform(unique_adaptor)|join|filter(is_even)|transform(x3),0);
-  }
+  auto unique_adaptor=[](auto&& srng){return srng|unique;};
+  ret=ranges::accumulate(
+    rng5|transform(unique_adaptor)|join|filter(is_even)|transform(x3),0);
 };
-BENCHMARK(test5_rangev3);
 
 auto divisible_by_3=[](int x){return x%3==0;};
 auto sum=[](const auto& p){return std::get<0>(p)+std::get<1>(p);};
 auto rng6=rng1;
 
-auto test6_handwritten=[](benchmark::State& st)
+auto test6_handwritten=[]
 {
-  for(auto _:st){
-    int res=0;
-    for(auto x:rng6){
-      auto y=x+x3(x);
-      if(divisible_by_3(y))res+=y;
-    }
-    ret=res;
+  int res=0;
+  for(auto x:rng6){
+    auto y=x+x3(x);
+    if(divisible_by_3(y))res+=y;
   }
+  ret=res;
 };
-BENCHMARK(test6_handwritten);
 
-auto test6_transrangers=[](benchmark::State& st)
+auto test6_transrangers=[]
 {
-  for(auto _:st){
-    using namespace transrangers;
-      
-    ret=accumulate(
-      filter(divisible_by_3,
-        transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
-  }
+  using namespace transrangers;
+    
+  ret=accumulate(
+    filter(divisible_by_3,
+      transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
 };
-BENCHMARK(test6_transrangers);
 
-auto test6_rangev3=[](benchmark::State& st)
+auto test6_rangev3=[]
 {
-  for(auto _:st){
-    using namespace ranges::views;
+  using namespace ranges::views;
 
-    ret=ranges::accumulate(
-      zip(rng6,rng6|transform(x3))|transform(sum)|filter(divisible_by_3),0);
-  }
+  ret=ranges::accumulate(
+    zip(rng6,rng6|transform(x3))|transform(sum)|filter(divisible_by_3),0);
 };
-BENCHMARK(test6_rangev3);
 
-BENCHMARK_MAIN();
+int main()
+{
+  auto bench=ankerl::nanobench::Bench().minEpochIterations(10);
+  
+  bench.run("test1_handwritten",test1_handwritten);
+  bench.run("test1_transrangers",test1_transrangers);
+  bench.run("test1_rangev3",test1_rangev3);
+
+  bench.run("test2_handwritten",test2_handwritten);
+  bench.run("test2_transrangers",test2_transrangers);
+  bench.run("test2_rangev3",test2_rangev3);
+
+  bench.run("test3_handwritten",test3_handwritten);
+  bench.run("test3_transrangers",test3_transrangers);
+  bench.run("test3_rangev3",test3_rangev3);
+
+  bench.run("test4_handwritten",test4_handwritten);
+  bench.run("test4_transrangers",test4_transrangers);
+  bench.run("test4_rangev3",test4_rangev3);
+
+  bench.run("test5_handwritten",test5_handwritten);
+  bench.run("test5_transrangers",test5_transrangers);
+  bench.run("test5_rangev3",test5_rangev3);
+
+  bench.run("test6_handwritten",test6_handwritten);
+  bench.run("test6_transrangers",test6_transrangers);
+  bench.run("test6_rangev3",test6_rangev3);
+  
+  ankerl::nanobench::render(
+    ankerl::nanobench::templates::csv(),bench,std::cout);
+}
