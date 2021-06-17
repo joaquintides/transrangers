@@ -209,16 +209,6 @@ auto test5_rangev3=[]
     0);
 };
 
-
-auto test5_rangev3=[]
-{
-  using namespace ranges::views;
-
-  auto unique_adaptor=[](auto&& srng){return srng|unique;};
-  ret=ranges::accumulate(
-    rng5|transform(unique_adaptor)|join|filter(is_even)|transform(x3),0);
-};
-
 auto divisible_by_3=[](int x){return x%3==0;};
 auto sum=[](const auto& p){return std::get<0>(p)+std::get<1>(p);};
 auto rng6=rng1;
