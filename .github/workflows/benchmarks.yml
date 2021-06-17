@@ -16,7 +16,7 @@ jobs:
       matrix:
         include:
           - compiler: g++-11
-            compileroptions: -std=c++2a -O3 -DNDEBUG
+            compileroptions: -std=c++2a -O3 -DNDEBUG -finline-limit=10000
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
