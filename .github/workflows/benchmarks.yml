@@ -49,8 +49,11 @@ jobs:
 
       - name: Install nanobench
         run: |
-          cd $GITHUB_WORKSPACE
-          sudo cp nanobench/src/include/nanobench.h /usr/local/include/
+          mkdir -p /opt/github
+          cd /opt/github
+          git clone https://github.com/martinus/nanobench.git
+          cd nanobench/src/include
+          sudo cp -rp * /usr/local/include/
 
       - name: Install transrangers
         run: |
@@ -83,32 +86,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install google/benchmark
-        shell: powershell
-        run: |
-          if ( -Not (Test-Path -Path "C:\opt\github") )
-          {
-            mkdir -p C:\opt\github
-          }
-          cd C:\opt\github
-          git clone https://github.com/google/benchmark.git
-          # Benchmark requires Google Test as a dependency. Add the source tree as a subdirectory.
-          git clone https://github.com/google/googletest.git benchmark/googletest
-          # Go to the library root directory
-          cd benchmark
-          # Make a build directory to place the build output.
-          cmake -E make_directory "build"
-          # Generate build system files with cmake.
-          cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
-          # # or, starting with CMake 3.13, use a simpler form:
-          # # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
-          # # Build the library.
-          # cmake --build "build" --config Release
-          # # run the tests to check the build.
-          # cmake -E chdir "build" ctest --build-config Release
-          # install the library globally
-          cmake --build "build" --config Release --target install
-
       - name: Install range-v3
         shell: powershell
         run: |
@@ -118,6 +95,17 @@ jobs:
           }
           cd C:\opt\github
           git clone https://github.com/ericniebler/range-v3.git
+          
+        
+      - name: Install nanobench
+        shell: powershell
+        run: |
+          if ( -Not (Test-Path -Path "C:\opt\github") )
+          {
+            mkdir -p C:\opt\github
+          }
+          cd C:\opt\github
+          git clone https://github.com/martinus/nanobench.git
 
       - name: Compile
         shell: cmd
@@ -128,7 +116,7 @@ jobs:
           set LIB=%LIB%;C:\Program Files (x86)\benchmark\lib
           set INCLUDE=%INCLUDE%;C:\opt\github\range-v3\include
           set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\include
-          set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\nanobench\src\include
+          set INCLUDE=%INCLUDE%;C:\opt\github\nanobench\src\include
           echo %INCLUDE%
           ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}}
 
