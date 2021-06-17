@@ -39,6 +39,10 @@ jobs:
           sudo apt-get update
           sudo apt install -y ${{matrix.install}}
 
+      - name: Install pyperf
+        run: |
+          sudo python -m pip install pyperf
+
       - name: Install range-v3
         run: |
           mkdir -p /opt/github
@@ -68,7 +72,6 @@ jobs:
 
       - name: System tuning
         run: |
-          sudo python -m pip install pyperf
           sudo modprobe msr
           sudo python -m pyperf system tune
 
