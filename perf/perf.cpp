@@ -195,6 +195,18 @@ auto test5_handwritten=[]
   ret=res;
 };
 
+auto test5_transrangers=[]
+{
+  using namespace transrangers;
+    
+  auto unique_adaptor=[](auto&& srng){
+    return unique(all(std::forward<decltype(srng)>(srng)));
+  };
+  ret=accumulate(
+    transform(x3,filter(is_even,join(transform(unique_adaptor,all(rng5))))),
+    0);
+};
+
 auto rangev3_unique_adaptor=[](auto&& srng)
 {
   return srng|ranges::views::unique;
