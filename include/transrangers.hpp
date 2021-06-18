@@ -196,7 +196,7 @@ auto unique(Ranger rgr)
 
 struct identity_adaption
 {
-  static auto adapt(auto&& srgr){
+  static decltype(auto) adapt(auto&& srgr){
     return std::forward<decltype(srgr)>(srgr);
   };
 };
