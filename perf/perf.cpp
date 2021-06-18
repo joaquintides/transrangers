@@ -272,6 +272,10 @@ int main()
   bench.run("test4_transrangers",test4_transrangers);
   bench.run("test4_rangev3",test4_rangev3);
 
+  bench.run("test4_handwritten",test4_handwritten);
+  bench.run("test4_transrangers",test4_transrangers);
+  bench.run("test4_rangev3",test4_rangev3);
+
   bench.run("test5_handwritten",test5_handwritten);
   bench.run("test5_transrangers",test5_transrangers);
   bench.run("test5_rangev3",test5_rangev3);
@@ -280,6 +284,10 @@ int main()
   bench.run("test6_transrangers",test6_transrangers);
   bench.run("test6_rangev3",test6_rangev3);
   
+  bench.run("test6_handwritten",test6_handwritten);
+  bench.run("test6_transrangers",test6_transrangers);
+  bench.run("test6_rangev3",test6_rangev3);
+
   ankerl::nanobench::render(
     ankerl::nanobench::templates::csv(),bench,std::cout);
 }
