@@ -220,6 +220,7 @@ We have written a [benchmark suite](perf/perf.cpp) that exercises several range 
 * Test 3: `unique|filter` over 100k integers.
 * Test 4: `join|unique|filter|transform` over a collection of 10 vectors of 100k integers each.
 * Test 5: `transform(unique)|join|filter|transform` over a collection of 10 vectors of 100k integers each.
+* Test 6: `zip(·,·|transform)|transform(sum)|filter` over 1M integers fed twice as separate ranges.
 
 using three approaches:
 * Handwritten code.
