@@ -173,15 +173,13 @@ auto unique(Ranger rgr)
   return ranger<cursor>([=, start = true, p = cursor{}](auto dst) mutable {
     if (start) {               // need to get the first element
       start = false;
-      bool cont = false;
       if (rgr([&](auto q) {
-        p = q;                 // store the cursor
-        cont = dst(q);         // keep the continue/stop indication from dst
-        return false;          // stop ranging, we just wanted one element
-      })) return true;         // empty range
-      if (!cont) return false; // honor stop if dst told us so
+        p = q;                   // store the cursor
+        return false;            // stop ranging, we just wanted one element
+      })) return true;           // empty range
+      if (!dst(p)) return false; // feed cursor to dst
     }
-    return rgr([&](auto q) {   // regular loop once p has been initialized
+    return rgr([&](auto q) {     // regular loop once p has been initialized
       auto prev_p = p;
       p = q;
       return *prev_p == *q ? true : dst(q);
