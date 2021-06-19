@@ -171,7 +171,7 @@ auto unique(Ranger rgr)
   using cursor = typename Ranger::cursor;
     
   return ranger<cursor>([=, start = true, p = cursor{}](auto dst) mutable {
-    if (start) {               // need to get the first element
+    if (start) {                 // need to get the first element
       start = false;
       if (rgr([&](auto q) {
         p = q;                   // store the cursor
