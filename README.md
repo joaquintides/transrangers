@@ -191,9 +191,10 @@ auto unique(Ranger rgr)
 ```
 Not only can we keep a handle to the previous value thanks to cursor- (rather than value-) passing, but the fact that control flow resides into `unique` itself allows us to first call the wrapped ranger to get the first element and then process the remaining elements within a straightforward, potentially more optimizable loop: with the previous push-based approach, checking for the initialization of `p` would have to be done at each iteration. Also, internal control makes implementing fan-in operations trivial:
 ```cpp
-auto concat()
+template<typename Ranger>
+auto concat(Ranger rgr)
 {
-  return [](auto&&) { return true; };
+  return rgr;
 }
 
 template<typename Ranger, typename... Rangers>
