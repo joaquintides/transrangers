@@ -246,7 +246,7 @@ Some observations:
   produces *exactly* the same assembly as the handwritten loop:
   ```cpp
   int res = 0;
-  for(auto x : rng6) {
+  for (auto x : rng6) {
     auto y = x + x3(x);
     if (divisible_by_3(y)) res += y;
   }
@@ -262,7 +262,7 @@ template<ranges::input_range R, typename Proj=std::identity, typename Fun>
 constexpr ranges::for_each_result<ranges::borrowed_iterator_t<R>, Fun>
 for_each(R&& r, Fun f, Proj proj = {})
 {
-  if constexpr(has_ranger_v<R>) {
+  if constexpr (has_ranger_v<R>) {
     ranger_for(r)([&](auto p) {
       std::invoke(f, std::invoke(proj, *p));
       return true;
