@@ -239,18 +239,18 @@ Some observations:
   ```cpp
   using namespace transrangers;
   
-  ret=accumulate(
+  ret = accumulate(
     filter(divisible_by_3,
-      transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
+      transform(sum, zip(all(rng6), transform(x3, all(rng6))))), 0);
   ```
   produces *exactly* the same assembly as the handwritten loop:
   ```cpp
-  int res=0;
-  for(auto x:rng6){
-    auto y=x+x3(x);
-    if(divisible_by_3(y))res+=y;
+  int res = 0;
+  for(auto x : rng6) {
+    auto y = x + x3(x);
+    if (divisible_by_3(y)) res += y;
   }
-  ret=res;
+  ret = res;
   ```
 * In GCC, transrangers are always faster than handwritten code, and the fastest overall for tests 1, 2, 3 and 5. For tests 4 and 6 repeated runs of the same benchmark yield highly fluctuating results where sometimes handwritten and transrangers beat Range-v3 by little, and some other times it is the other way around: this may be connected to the noisy environment virtual machines run in, or to different HW architectures being picked up each time. The fact that handwritten code is 2-3 times slower than transrangers in tests 1, 3 and 5 is due to an [optimization issue](https://stackoverflow.com/q/67942354/213114) with lambda expressions preventing auto-vectorization, which the transrangers library takes care of internally.
 * In Visual Studio, handwritten code and transrangers have approximately equivalent performance and are generally faster than Range-v3 (except in test 1). It must be noted that, unlike Clang and GCC, Visual Studio produces very different assembly for handwritten code and transrangers.
