@@ -171,17 +171,15 @@ auto unique(Ranger rgr)
   using cursor = typename Ranger::cursor;
     
   return ranger<cursor>([=, start = true, p = cursor{}](auto dst) mutable {
-    if (start) {               // need to get the first element
+    if (start) {                 // need to get the first element
       start = false;
-      bool cont = false;
       if (rgr([&](auto q) {
-        p = q;                 // store the cursor
-        cont = dst(q);         // keep the continue/stop indication from dst
-        return false;          // stop ranging, we just wanted one element
-      })) return true;         // empty range
-      if (!cont) return false; // honor stop if dst told us so
+        p = q;                   // store the cursor
+        return false;            // stop ranging, we just wanted one element
+      })) return true;           // empty range
+      if (!dst(p)) return false; // feed cursor to dst
     }
-    return rgr([&](auto q) {   // regular loop once p has been initialized
+    return rgr([&](auto q) {     // regular loop once p has been initialized
       auto prev_p = p;
       p = q;
       return *prev_p == *q ? true : dst(q);
@@ -191,9 +189,10 @@ auto unique(Ranger rgr)
 ```
 Not only can we keep a handle to the previous value thanks to cursor- (rather than value-) passing, but the fact that control flow resides into `unique` itself allows us to first call the wrapped ranger to get the first element and then process the remaining elements within a straightforward, potentially more optimizable loop: with the previous push-based approach, checking for the initialization of `p` would have to be done at each iteration. Also, internal control makes implementing fan-in operations trivial:
 ```cpp
-auto concat()
+template<typename Ranger>
+auto concat(Ranger rgr)
 {
-  return [](auto&&) { return true; };
+  return rgr;
 }
 
 template<typename Ranger, typename... Rangers>
@@ -220,24 +219,41 @@ We have written a [benchmark suite](perf/perf.cpp) that exercises several range 
 * Test 3: `unique|filter` over 100k integers.
 * Test 4: `join|unique|filter|transform` over a collection of 10 vectors of 100k integers each.
 * Test 5: `transform(unique)|join|filter|transform` over a collection of 10 vectors of 100k integers each.
+* Test 6: `zip(·,·|transform)|transform(sum)|filter` over two vectors of 1M integers each.
 
 using three approaches:
 * Handwritten code.
 * A proof-of-concept, minimal [transrangers](include/transrangers.hpp) library.
 * [Range-v3](https://github.com/ericniebler/range-v3).
 
-on GCC 11.1, Clang 11.0 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise (if you volunteer to re-run the benchmark on a local machine please let me know). Execution times are shown normalized to those of Range-v3.
-
-![GCC 11.1](img/perf_gcc_11.png)
+on Clang 11.0, GCC 11.1 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise (if you volunteer to re-run the benchmark on a local machine please let me know). Execution times are shown normalized to those of Range-v3.
 
 ![Clang 11.0](img/perf_clang_11.png)
+
+![GCC 11.1](img/perf_gcc_11.png)
 
 ![VS 2019](img/perf_vs_2019.png)
 
 Some observations:
-* In Clang, transrangers performance is generally equivalent to handwritten code and consistently outperforms Range-v3 by a large factor.
-* Gains in GCC are more modest, and even there is a degradation (both in handwritten code and transrangers) for test 3 (`unique|filter`), which is shocking given that the handwritten code is extremely simple: some further inspection of the generated assembly is in order.
-* in Visual Studio the only surprising situation is for transrangers in test 1 (`filter|transform`), with the added complication that the handwritten code performs excellently.
+* In Clang, transrangers performance is generally equivalent to handwritten code and consistently outperforms Range-v3 by a large factor. Handwritten code in test 4 is not auto-vectorized, which explains its poor performance with respect to transrangers; curiously enough, test 5, which is similar in structure, produces basically the same auto-vectorized assembly both for handwritten code and transrangers. It is particularly impressive and a testament to the optimization powers of the compiler that test 6 written with transrangers:
+  ```cpp
+  using namespace transrangers;
+  
+  ret=accumulate(
+    filter(divisible_by_3,
+      transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
+  ```
+  produces *exactly* the same assembly as the hadwritten loop:
+  ```cpp
+  int res=0;
+  for(auto x:rng6){
+    auto y=x+x3(x);
+    if(divisible_by_3(y))res+=y;
+  }
+  ret=res;
+  ```
+* In CGG, transrangers are always faster than handwritten code, and the fastest overall for tests 1, 2, 3 and 5. For tests 4 and 6 repeated runs of the same benchmark yield highly fluctuating results where sometimes handwritten and transrangers beat Range-v3 by little, and some other times it is the other way around: this may be connected to the noisy environment virtual machines run in, or to different HW architectures being picked up each time. The fact that handwritten code is 2-3 times slower than transrangers in tests 1, 3 and 5 is due to an [optimization issue](https://stackoverflow.com/q/67942354/213114) with lambda expressions preventing auto-vectorization, which the transrangers library takes care of internally.
+* In visual Studio, handwritten code and transrangers have approximately equivalent performance and are generally faster than Range-v3 (except in test 1). It must be noted that, unlike Clang and GCC, Visual Studio produces very different assembly for handwritten code and transrangers.
 * In all compilers, Range-v3 performs very badly for test 2 (`concat|take|filter|transform`): this may be related to the fat iterator needed to traverse the multilayer range generated by `concat`.
 ### Transrangers as a backend for view-based operations
 Transrangers have merit on its own as a composable and [expressive](#annex-a-rangers-are-as-expressive-as-range-adaptors) design pattern, but they can also be used internally by pull-based libraries such as C++ ranges/Range-v3 to accelerate their algorithms:

@@ -16,13 +16,13 @@ jobs:
       matrix:
         include:
           - compiler: g++-11
-            compileroptions: -std=c++2a -fconcepts -lbenchmark -lpthread -O3 -DNDEBUG
+            compileroptions: -std=c++2a -O3 -DNDEBUG -finline-limit=10000
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
             install: g++-11
           - compiler: clang++
-            compileroptions: -std=c++2a -lbenchmark -lpthread -O3 -DNDEBUG
+            compileroptions: -std=c++2a -O3 -DNDEBUG
             sourcefile: perf/perf.cpp
             outputfile: Perf
             os: ubuntu-20.04
@@ -38,25 +38,10 @@ jobs:
           sudo -E apt-add-repository -y ppa:ubuntu-toolchain-r/test
           sudo apt-get update
           sudo apt install -y ${{matrix.install}}
-      - name: Install google/benchmark
-        run: |
-          mkdir -p /opt/github
-          cd /opt/github
-          git clone https://github.com/google/benchmark.git
-          git clone https://github.com/google/googletest.git benchmark/googletest
-          cd benchmark
-          cmake -E make_directory "build"
-          cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
-          # or, starting with CMake 3.13, use a simpler form:
-          # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
-          # Can these steps be skipped?
-          # # Build the library.
-          # cmake --build "build" --config Release
-          # # run the tests to check the build.
-          # cmake -E chdir "build" ctest --build-config Release
 
-          # install the library globally
-          sudo cmake --build "build" --config Release --target install
+      - name: Install pyperf
+        run: |
+          sudo python -m pip install pyperf
 
       - name: Install range-v3
         run: |
@@ -64,6 +49,14 @@ jobs:
           cd /opt/github
           git clone https://github.com/ericniebler/range-v3.git
           cd range-v3/include
+          sudo cp -rp * /usr/local/include/
+
+      - name: Install nanobench
+        run: |
+          mkdir -p /opt/github
+          cd /opt/github
+          git clone https://github.com/martinus/nanobench.git
+          cd nanobench/src/include
           sudo cp -rp * /usr/local/include/
 
       - name: Install transrangers
@@ -76,6 +69,11 @@ jobs:
           cd $GITHUB_WORKSPACE
           ${{matrix.compiler}} --version
           ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}} -o ${{matrix.outputfile}}
+
+      - name: System tuning
+        run: |
+          sudo modprobe msr
+          sudo python -m pyperf system tune
 
       - name: Run tests
         run: |
@@ -97,32 +95,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install google/benchmark
-        shell: powershell
-        run: |
-          if ( -Not (Test-Path -Path "C:\opt\github") )
-          {
-            mkdir -p C:\opt\github
-          }
-          cd C:\opt\github
-          git clone https://github.com/google/benchmark.git
-          # Benchmark requires Google Test as a dependency. Add the source tree as a subdirectory.
-          git clone https://github.com/google/googletest.git benchmark/googletest
-          # Go to the library root directory
-          cd benchmark
-          # Make a build directory to place the build output.
-          cmake -E make_directory "build"
-          # Generate build system files with cmake.
-          cmake -E chdir "build" cmake -DCMAKE_BUILD_TYPE=Release ../
-          # # or, starting with CMake 3.13, use a simpler form:
-          # # cmake -DCMAKE_BUILD_TYPE=Release -S . -B "build"
-          # # Build the library.
-          # cmake --build "build" --config Release
-          # # run the tests to check the build.
-          # cmake -E chdir "build" ctest --build-config Release
-          # install the library globally
-          cmake --build "build" --config Release --target install
-
       - name: Install range-v3
         shell: powershell
         run: |
@@ -132,16 +104,26 @@ jobs:
           }
           cd C:\opt\github
           git clone https://github.com/ericniebler/range-v3.git
+          
+        
+      - name: Install nanobench
+        shell: powershell
+        run: |
+          if ( -Not (Test-Path -Path "C:\opt\github") )
+          {
+            mkdir -p C:\opt\github
+          }
+          cd C:\opt\github
+          git clone https://github.com/martinus/nanobench.git
 
       - name: Compile
         shell: cmd
         run: |
           cd %GITHUB_WORKSPACE%
           call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-          set INCLUDE=%INCLUDE%;C:\Program Files (x86)\benchmark\include
-          set LIB=%LIB%;C:\Program Files (x86)\benchmark\lib
           set INCLUDE=%INCLUDE%;C:\opt\github\range-v3\include
           set INCLUDE=%INCLUDE%;%GITHUB_WORKSPACE%\include
+          set INCLUDE=%INCLUDE%;C:\opt\github\nanobench\src\include
           echo %INCLUDE%
           ${{matrix.compiler}} ${{matrix.sourcefile}} ${{matrix.compileroptions}}
 

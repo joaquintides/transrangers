@@ -21,6 +21,17 @@
 #include <type_traits>
 #include <utility>
 
+#if defined(__clang__)
+#define TRANSRANGERS_HOT __attribute__((flatten))
+#define TRANSRANGERS_HOT_MUTABLE  __attribute__((flatten)) mutable
+#elif defined(__GNUC__)
+#define TRANSRANGERS_HOT __attribute__((flatten))
+#define TRANSRANGERS_HOT_MUTABLE mutable __attribute__((flatten))
+#else
+#define TRANSRANGERS_HOT [[msvc::forceinline]]
+#define TRANSRANGERS_HOT_MUTABLE mutable [[msvc::forceinline]]
+#endif
+
 namespace transrangers{
 
 template<typename Cursor,typename F> 
@@ -28,13 +39,13 @@ struct ranger_class:F
 {
   using cursor=Cursor;
 };
-    
+
 template<typename Cursor,typename F>
 auto ranger(F f)
 {
   return ranger_class<Cursor,F>{f};
 }
-    
+
 template<typename Range>
 auto all(Range&& rng)
 {
@@ -42,12 +53,14 @@ auto all(Range&& rng)
   using std::end;
   using cursor=decltype(begin(rng));
   
-  return ranger<cursor>([first=begin(rng),last=end(rng)](auto dst)mutable{
+  return ranger<cursor>(
+    [first=begin(rng),last=end(rng)](auto dst) TRANSRANGERS_HOT_MUTABLE {
     auto it=first;
     while(it!=last)if(!dst(it++)){first=it;return false;}
     return true;
   });
 }
+
 template<typename Range>
 struct all_copy
 {
@@ -66,13 +79,22 @@ auto all(Range&& rng) requires(std::is_rvalue_reference_v<Range&&>)
   return all_copy<Range>{std::move(rng)};
 }
 
+template<typename Pred>
+auto pred_box(Pred pred)
+{
+  return [=](auto&&... x)->int{
+    return pred(std::forward<decltype(x)>(x)...);
+  };
+}
+
 template<typename Pred,typename Ranger>
-auto filter(Pred pred,Ranger rgr)
+auto filter(Pred pred_,Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](const auto& p){
+  return ranger<cursor>(
+    [=,pred=pred_box(pred_)](auto dst) TRANSRANGERS_HOT_MUTABLE {
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
       return pred(*p)?dst(p):true;
     });
   });
@@ -107,8 +129,10 @@ auto transform(F f,Ranger rgr)
 {
   using cursor=deref_fun<typename Ranger::cursor,F>;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    return rgr([&](const auto& p){return dst(cursor{p,&f});});
+  return ranger<cursor>([=](auto dst) TRANSRANGERS_HOT_MUTABLE {
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
+      return dst(cursor{p,&f});
+    });
   });
 }
 
@@ -117,8 +141,8 @@ auto take(int n,Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=](auto dst)mutable{
-    if(n)return rgr([&](const auto& p){
+  return ranger<cursor>([=](auto dst) TRANSRANGERS_HOT_MUTABLE {
+    if(n)return rgr([&](const auto& p) TRANSRANGERS_HOT {
       --n;
       return dst(p)&&(n!=0);
     })||(n==0);
@@ -138,7 +162,8 @@ auto concat(Ranger rgr,Rangers... rgrs)
   using cursor=typename Ranger::cursor;
     
   return ranger<cursor>(
-    [=,cont=false,next=concat(rgrs...)](auto dst)mutable{
+    [=,cont=false,next=concat(rgrs...)]
+    (auto dst) TRANSRANGERS_HOT_MUTABLE {
       if(!cont){
         if(!(cont=rgr(dst)))return false;
       }
@@ -146,58 +171,72 @@ auto concat(Ranger rgr,Rangers... rgrs)
     }
   );
 }
-    
+
 template<typename Ranger>
 auto unique(Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
     
-  return ranger<cursor>([=,start=true,p=cursor{}](auto dst)mutable{
+  return ranger<cursor>(
+    [=,start=true,p=cursor{}](auto dst) TRANSRANGERS_HOT_MUTABLE {
     if(start){
       start=false;
-      bool cont=false;
-      if(rgr([&](const auto& q){
+      if(rgr([&](const auto& q) TRANSRANGERS_HOT {
         p=q;
-        cont=dst(q);
         return false;
       }))return true;
-      if(!cont)return false;
+      if(!dst(p))return false;
     }
-    return rgr([&](const auto& q){
-      if(*p==*q){p=q;return true;}
-      else{p=q;return dst(q);}
+    return rgr([&,prev=p](const auto& q) TRANSRANGERS_HOT_MUTABLE {
+      if((*prev==*q)||dst(q)){prev=q;return true;}
+      else{p=q;return false;}
     });
   });
 }
 
-template<typename Ranger>
+struct identity_adaption
+{
+  static decltype(auto) adapt(auto&& srgr){
+    return std::forward<decltype(srgr)>(srgr);
+  };
+};
+
+template<typename Ranger,typename Adaption=identity_adaption>
 auto join(Ranger rgr)
 {
   using cursor=typename Ranger::cursor;
-  using subranger=std::remove_cvref_t<decltype(*std::declval<cursor>())>; 
+  using subranger=std::remove_cvref_t<
+    decltype(Adaption::adapt(*std::declval<const cursor&>()))>; 
   using subranger_cursor=typename subranger::cursor;
     
   return ranger<subranger_cursor>(
-    [=,osrgr=std::optional<subranger>{}](auto dst)mutable{
-      if(osrgr){
-        if(!(*osrgr)(dst))return false;
+    [=,osrgr=std::optional<subranger>{}]
+    (auto dst) TRANSRANGERS_HOT_MUTABLE {
+    if(osrgr){
+      if(!(*osrgr)(dst))return false;
+    }
+    return rgr([&](const auto& p) TRANSRANGERS_HOT {
+      auto srgr=Adaption::adapt(*p);
+      if(!srgr(dst)){
+        osrgr.emplace(std::move(srgr));
+        return false;
       }
-      return(rgr([&](const auto& p){
-        auto cont=(*p)(dst);
-        if(!cont)osrgr.emplace(*p);
-        return cont;
-      }));
-  });    
+      else return true;
+    });
+  });
 }
+
+struct all_adaption
+{
+  static auto adapt(auto&& srgn){
+    return all(std::forward<decltype(srgn)>(srgn));
+  };
+};
 
 template<typename Ranger>
 auto ranger_join(Ranger rgr)
 {
-  auto all_adaptor=[](auto&& srng){
-    return all(std::forward<decltype(srng)>(srng));
-  };
-
-  return join(transform(all_adaptor,rgr));
+  return join<Ranger,all_adaption>(std::move(rgr));
 }
 
 template<typename... Rangers>
@@ -219,16 +258,16 @@ auto zip(Ranger rgr,Rangers... rgrs)
   using cursor=zip_cursor<Ranger,Rangers...>;
 
   return ranger<cursor>(
-    [=,zp=cursor{}](auto dst)mutable{
+    [=,zp=cursor{}](auto dst) TRANSRANGERS_HOT_MUTABLE {
       bool finished=false;
-      return rgr([&](const auto& p){
+      return rgr([&](const auto& p) TRANSRANGERS_HOT {
         std::get<0>(zp.ps)=p;
         if([&]<std::size_t... I>(std::index_sequence<I...>
 #ifdef _MSC_VER
           ,auto&... rgrs
 #endif
-        ){
-          return (rgrs([&](const auto& p){
+        ) TRANSRANGERS_HOT {
+          return (rgrs([&](const auto& p) TRANSRANGERS_HOT {
             std::get<I+1>(zp.ps)=p;
             return false;
           })||...); 
@@ -247,6 +286,18 @@ auto zip(Ranger rgr,Rangers... rgrs)
   );
 }
 
+template<typename Ranger,typename T>
+T accumulate(Ranger rgr,T init)
+{
+  rgr([&](const auto& p) TRANSRANGERS_HOT{
+    init=std::move(init)+*p;
+    return true;
+  });
+  return init;
+}
+
 } /* transrangers */
 
+#undef TRANSRANGERS_HOT_MUTABLE
+#undef TRANSRANGERS_HOT
 #endif
