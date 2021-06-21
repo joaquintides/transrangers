@@ -236,7 +236,7 @@ on Clang 11.0, GCC 11.1 and Visual Studio 2019. The benchmark has been executed 
 
 Some observations:
 * In Clang, transrangers performance is generally equivalent to handwritten code and consistently outperforms Range-v3 by a large factor. Handwritten code in test 4 is not auto-vectorized, which explains its poor performance with respect to transrangers; curiously enough, test 5, which is similar in structure, produces basically the same auto-vectorized assembly both for handwritten code and transrangers. It is particularly impressive and a testament to the optimization powers of the compiler that test 6 written with transrangers:
-```cpp
+  ```cpp
 using namespace transrangers;
 
 ret=accumulate(
@@ -244,7 +244,7 @@ ret=accumulate(
     transform(sum,zip(all(rng6),transform(x3,all(rng6))))),0);
 ```
   produces *exactly* the same assembly as the hadwritten loop:
-```cpp
+  ```cpp
 int res=0;
 for(auto x:rng6){
   auto y=x+x3(x);
