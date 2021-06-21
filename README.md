@@ -228,11 +228,11 @@ using three approaches:
 
 on Clang 11.0, GCC 11.1 and Visual Studio 2019. The benchmark has been executed in a virtual environment by a dedicated [GitHub Action](https://github.com/joaquintides/transrangers/actions/workflows/benchmarks.yml), so results may have a fair degree of noise (if you volunteer to re-run the benchmark on a local machine please let me know). Execution times are shown normalized to those of Range-v3.
 
-![Clang 11.0](img/perf_clang_11.png?)
+![Clang 11.0](img/perf_clang_11.png)
 
-![GCC 11.1](img/perf_gcc_11.png?)
+![GCC 11.1](img/perf_gcc_11.png)
 
-![VS 2019](img/perf_vs_2019.png?)
+![VS 2019](img/perf_vs_2019.png)
 
 Some observations:
 * In Clang, transrangers performance is generally equivalent to handwritten code and consistently outperforms Range-v3 by a large factor. Handwritten code in test 4 is not auto-vectorized, which explains its poor performance with respect to transrangers; curiously enough, test 5, which is similar in structure, produces basically the same auto-vectorized assembly both for handwritten code and transrangers. It is particularly impressive and a testament to the optimization powers of the compiler that test 6 written with transrangers:
