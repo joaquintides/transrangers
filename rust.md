@@ -55,7 +55,7 @@ one should be able to write something similar to
 range.filter(is_even)
      .transform(x3);
 ```
-It should also be extendable in the same way as Iterators which causes pushgen, like Rust iterators,
+It should also be extendable in the same way as Iterators, which causes pushgen, like Rust iterators,
 to be built around a single trait:
 ```rust
 pub trait Generator {
@@ -63,9 +63,9 @@ pub trait Generator {
     fn run(&mut self, output: impl FnMut(Self::Output) -> crate::ValueResult) -> GeneratorResult;
 }
 ```
-The `run` method is analogous to the *ranger* in transranges, invoking a consumption function (`output`)
+The `run` method is analogous to the ranger call operator in transrangers, invoking a consumption function (`output`)
 for each value in the range. A small difference is the return value of the ranger and consumption
-function. In transrangers they both return a bool, but while writing pushgen I felt it was easier
+function. In transrangers they both return a `bool`, but while writing pushgen the author felt it was easier
 to prevent mistakes if these were two distinct types instead. This is merely a stylistic choice.
 
 This trait is accompanied by a `GeneratorExt` trait which provides already-implemented
@@ -87,29 +87,29 @@ fn main() {
 
 #### Values instead of cursors
 
-A major difference between transrangers and pushgen is that pushgen follows the ideomatic Rust approach
+A major difference between transrangers and pushgen is that pushgen follows the idimatic Rust approach
 and passes values and references directly. Transrangers passes a lightweight copyable cursor to all
 consumers instead.
 
-One effect of not using cursors is that pushgen doesn't require address-stability in
-the way that transrangers does. Values can come from any potential datasource.
+One effect of not using cursors is that pushgen does not require address stability in
+the way that transrangers does. Values can come from any potential data source.
 Hence, the trait is named *Generator* instead of *Ranger* or similar.
 
 Passing values directly enables `map` to
 call its associated closure exactly once for each value. In transrangers the mapping function
 is called each time the value is inspected, even for downstream adaptors.
 ```cpp
-// some_transformation is invoked both by dedup and potentially by some_filter
-// for every value in the range
-filter(some_filter, dedup(transform(some_transformation, rng)));
+// transrangers: some_transformation is invoked both by unique and potentially
+// by some_filter for every value in the range
+filter(some_filter, unique(transform(some_transformation, rgr)));
 ```
 ```rust
-// some_transformation is invoked once for every value in the range
+// pushgen: some_transformation is invoked once for every value in the range
 range.map(some_transformation).dedup().filter(some_filter);
 ```
 If `some_transformation` is expensive the cursor approach can cause a significant performance hit.
 
-Value-passing also enables closures to use and modify internal state in a way that is
+Value passing also enables closures to use and modify internal state in a way that is
 virtually impossible in transrangers.
 `enumerate`, which simply pairs an index with a value can be implemented manually by doing
 ```rust
@@ -126,13 +126,13 @@ depending on which down-stream adaptors are used.
 The cursor approach is more performant for expensive-to-move types though.
 
 The value-based approach can also cause adaptors to behave slightly differently between Rust and C++.
-`dedup` in C++ will forward the first value and then ignore any subsequent duplicate values,
+`unique` in C++ will forward the first value and then ignore any subsequent duplicate values,
 only copying and storing the cursor to the value that was output.
-In Rust it will ignore all duplicate values and forward a value only when a non-duplicate is seen.
+In Rust, `dedup` will ignore all duplicate values and forward a value only when a non-duplicate is seen.
 Implementing the C++ approach in Rust would require cloneable values,
-which is more likely impact performance.
+which is more likely to impact performance.
 
-| Range output | Output from `range.dedup()` in  C++ | Output from `range.dedup()` in pushgen |
+| Source range | Output from `unique` in  C++        | Output from `dedup` in pushgen         |
 |--------------|-------------------------------------|----------------------------------------|
 | 1            | 1                                   |                                        |
 | 2            | 2                                   | 1                                      |
