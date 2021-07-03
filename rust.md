@@ -178,6 +178,9 @@ The following matrix shows the *geometric average* relative execution time of sc
 | **Rust<br/>iterators<br/>`for` loop** |203%|97%|293%|78%|291%|179%|101%|**100%**|
 
 Some observations:
-* To write
+* Transrangers in Clang and pushgen are the fastest scenarios and behave almost exactly on each test, which strongly suggests that the assembly code generated is basically the same (this has not been verified by visual inspection, though).
+* Transrangers in GCC are still faster than their Range-v3 counterpart, but they lose some performace with respect to Clang, particularly in tests 4 and 6.
+* Range-v3 performance is notably worse than that of Rust iterators (in any of its looping variants). Some Range-v3 tests run as much as three times slower than Rust iterators with `for_each`.
+* As expected, Rust iterators deliver more performance when push-based-friendly `for_each` is used rather than `for` loops with pull-based `next`. `try_for_each`, on the other hand, does not fare better, which seems odd given that the same optimization possibilities exist as with `for_each` —incidentally, `try_for_each` is structurally equivalent to transrangers/pushgen. Source code inspection reveals that Rust iterators (both from the standard library and `dedup` from crate [`itertools`](https://docs.rs/itertools/)) are missing some optimization opportunities: for instance, `#[inline]` directives are not used everywhere, and `dedup` does not provide a bespoke `try_fold` implementation.
 ### Conclusions
-To write
+Crate [pushgen](https://github.com/AndWass/pushgen) ports the transrangers design pattern to Rust and delivers there the same performance as in C++. Rust iterators provide custom optimization points `fold`/`try_fold` that can potentially achieve the same push-based performance, though as of this writing they are lagging behind pushgen. C++ ranges/Range-v3, which rely exclusively on a pull-based architecture, could benefit from adopting transrangers or a similar approach for the optimization of range processing operations: Rust iterators `fold`/`try_fold` show how this can be done in a non-intrusive, backwards-compatible manner.
