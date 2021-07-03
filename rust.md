@@ -48,7 +48,7 @@ So, `fold` default implementation is basically pull-based, but the standard libr
 A primary goal for pushgen is to allow iterator-styled code but making use
 of the push-based approach presented by transrangers. This means that instead of writing
 ```cpp
-transform(x3, filter(is_even, rng));
+transform(x3, filter(is_even, range));
 ```
 one should be able to write something similar to
 ```rust
