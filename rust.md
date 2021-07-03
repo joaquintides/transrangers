@@ -1,8 +1,10 @@
 ## Transrangers in Rust: a C++/Rust comparison
+*[Joaquín M López Muñoz](https://github.com/joaquintides), [Andreas Wass](https://github.com/AndWass)*
 * [Intro](#intro)
 * [Rust iterators for C++ programmers](#rust-iterators-for-c-programmers)
   * [Iterator folding](#iterator-folding)
 * [pushgen](#pushgen)
+  * [Values instead of cursors](#values-instead-of-cursors)
 * [Performance](#performance)
 * [Conclusions](#conclusions)
 ### Intro
@@ -43,7 +45,102 @@ Where the regular `for` loop has been replaced by a call to the `std::iter::Iter
 
 So, `fold` default implementation is basically pull-based, but the standard library document encourages iterator implementors to override this with push-based code when more performance can be gained. `fold` and related method `try_fold` (a variation with early termination) are then used as customization points for performance improvement. C++ ranges/Range-v3 miss this important concept and cannot escape out of their pull-based interface all across range adaptor chains. 
 ### pushgen
-\[For Andreas to write. I suggest you focus on how the original ideas in C++ translate to Rust and what the differences are (e.g. values are passed directly rather than via cursors, which makes `map` potentially more performant that in C++; how this affects the implementation of `dedup`; the usage of `ValueResult::MoreValues` and similar constants instead of booleans; etc.\]
+A primary goal for pushgen is to allow iterator-styled code but making use
+of the push-based approach presented by transrangers. This means that instead of writing
+```cpp
+transform(x3, filter(is_even, rng));
+```
+one should be able to write something similar to
+```rust
+range.filter(is_even)
+     .transform(x3);
+```
+It should also be extendable in the same way as Iterators which causes pushgen, like Rust iterators,
+to be built around a single trait:
+```rust
+pub trait Generator {
+    type Output;
+    fn run(&mut self, output: impl FnMut(Self::Output) -> crate::ValueResult) -> GeneratorResult;
+}
+```
+The `run` method is analogous to the *ranger* in transranges, invoking a consumption function (`output`)
+for each value in the range. A small difference is the return value of the ranger and consumption
+function. In transrangers they both return a bool, but while writing pushgen I felt it was easier
+to prevent mistakes if these were two distinct types instead. This is merely a stylistic choice.
+
+This trait is accompanied by a `GeneratorExt` trait which provides already-implemented
+extension methods, like `map`, for all types that implements the `Generator` trait.
+Pushgen also provides `SliceGenerator`, a generator implementation that can be used with any type that can be converted to
+a slice (think `std::span` in C++).
+
+Here is a small example of using `pushgen`:
+```rust
+use pushgen::{GeneratorExt, SliceGenerator};
+
+fn main() {
+    let data = [1, 2, 3, 4];
+    SliceGenerator::new(&data)
+        .map(|x| format!("Hello {}", x))
+        .for_each(|x| println!("{}", x));
+}
+```
+
+#### Values instead of cursors
+
+A major difference between transrangers and pushgen is that pushgen follows the ideomatic Rust approach
+and passes values and references directly. Transrangers passes a lightweight copyable cursor to all
+consumers instead.
+
+One effect of not using cursors is that pushgen doesn't require address-stability in
+the way that transrangers does. Values can come from any potential datasource.
+Hence, the trait is named *Generator* instead of *Ranger* or similar.
+
+Passing values directly enables `map` to
+call its associated closure exactly once for each value. In transrangers the mapping function
+is called each time the value is inspected, even for downstream adaptors.
+```cpp
+// some_transformation is invoked both by dedup and potentially by some_filter
+// for every value in the range
+filter(some_filter, dedup(transform(some_transformation, rng)));
+```
+```rust
+// some_transformation is invoked once for every value in the range
+range.map(some_transformation).dedup().filter(some_filter);
+```
+If `some_transformation` is expensive the cursor approach can cause a significant performance hit.
+
+Value-passing also enables closures to use and modify internal state in a way that is
+virtually impossible in transrangers.
+`enumerate`, which simply pairs an index with a value can be implemented manually by doing
+```rust
+let mut index = 0usize;This can potentially performance benefit for the Rust approach i
+range.map(move |value| {
+    let current = index;
+    index += 1;
+    (current, value) // Return a tuple of index and value
+});
+```
+Doing the same in transrangers would cause the index associated with each cursor to change
+depending on which down-stream adaptors are used.
+
+The cursor approach is more performant for expensive-to-move types though.
+
+The value-based approach can also cause adaptors to behave slightly differently between Rust and C++.
+`dedup` in C++ will forward the first value and then ignore any subsequent duplicate values,
+only copying and storing the cursor to the value that was output.
+In Rust it will ignore all duplicate values and forward a value only when a non-duplicate is seen.
+Implementing the C++ approach in Rust would require cloneable values,
+which is more likely impact performance.
+
+| Range output | Output from `range.dedup()` in  C++ | Output from `range.dedup()` in pushgen |
+|--------------|-------------------------------------|----------------------------------------|
+| 1            | 1                                   |                                        |
+| 2            | 2                                   | 1                                      |
+| 2            |                                     |                                        |
+| 3            | 3                                   | 2                                      |
+| *End*        | *End*                               | 3                                      |
+| *End*        | *End*                               | *End*                                  |
+
 ### Performance
 The same [tests](README.md#performance) originally written in C++ to compare transrangers and Range-v3 have been [ported to Rust](https://github.com/AndWass/pushgen/tree/main/benches) to do the analogous comparison between pushgen and Rust iterators:
 * Test 1: `filter|transform` over 1M integers (Rust `filter.map`.)
