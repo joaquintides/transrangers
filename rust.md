@@ -151,12 +151,12 @@ The same [tests](README.md#performance) originally written in C++ to compare tra
 * Test 6: `zip(·,·|transform)|transform(sum)|filter` over two vectors of 1M integers each (Rust `zip(.map).map(sum).filter`.)
 
 We measure three different mechanisms of range processing with Rust iterators:
-* With a regular `for` loop (relying on `next`).
 * With `for_each` (relying on `fold`).
 * With `try_for_each` (relying on `try_fold`).
+* With a regular `for` loop (relying on `next`).
 
 Tests for both C++ and Rust have been run on the same local Suse machine, so execution times can be compared directly. For C++, GCC 11.1.1 and Clang 12.0.0 have been used with `-O3 -DNDEBUG`. Rust tests have been benchmarked with [Criterion.rs](https://github.com/bheisler/criterion.rs). Execution times are in microseconds.
-| Test | GCC 11.1<br/>transrangers | GCC 11.1<br/>Range-v3 | Clang 12.0<br/>transrangers | Clang 12.0<br/>Range-v3 | Rust<br/>pushgen | Rust<br/>iterators<br/>`for` loop | Rust<br/>iterators<br/>`for_each` | Rust<br/>iterators<br/>`try_for_each` |
+| Test | GCC 11.1<br/>transrangers | GCC 11.1<br/>Range-v3 | Clang 12.0<br/>transrangers | Clang 12.0<br/>Range-v3 | Rust<br/>pushgen | Rust<br/>iterators<br/>`for_each` | Rust<br/>iterators<br/>`try_for_each` | Rust<br/>iterators<br/>`for` loop |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | Test 1    | 211              | 512           | 176                | 511             | 174     | 171               | 829                   | 422           |
 | Test 2    | 1091             | 4075          | 1056               | 7231            | 923     | 2743              | 2834                  | 2911          |
@@ -166,16 +166,16 @@ Tests for both C++ and Rust have been run on the same local Suse machine, so exe
 | Test 6    | 931              | 1016          | 345                | 1199            | 356     | 353               | 1089                  | 751           |
 
 The following matrix shows the *geometric average* relative execution time of scenarios in each row vs. scenarios in each column.
-| | GCC 11.1<br/>transrangers | GCC 11.1<br/>Range-v3 | Clang 12.0<br/>transrangers | Clang 12.0<br/>Range-v3 | Rust<br/>pushgen | Rust<br/>iterators<br/>`for` loop | Rust<br/>iterators<br/>`for_each` | Rust<br/>iterators<br/>`try_for_each` |
+| | GCC 11.1<br/>transrangers | GCC 11.1<br/>Range-v3 | Clang 12.0<br/>transrangers | Clang 12.0<br/>Range-v3 | Rust<br/>pushgen | Rust<br/>iterators<br/>`for_each` | Rust<br/>iterators<br/>`try_for_each` | Rust<br/>iterators<br/>`for` loop |
 |:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
 | **GCC 11.1<br/>transrangers** |**100%**|48%|145%|39%|143%|88%|50%|49%|
 | **GCC 11.1<br/>Range-v3** |209%|**100%**|303%|81%|300%|185%|104%|103%|
 | **Clang 12.0<br/>transrangers** |69%|33%|**100%**|27%|99%|61%|34%|34%|
 | **Clang 12.0<br/>Range-v3** |259%|124%|375%|**100%**|371%|229%|129%|128%|
 | **Rust<br/>pushgen** |70%|33%|101%|27%|**100%**|62%|35%|34%|
-| **Rust<br/>iterators<br/>`for` loop** |113%|54%|164%|44%|162%|**100%**|56%|56%|
-| **Rust<br/>iterators<br/>`for_each`** |201%|96%|290%|78%|288%|177%|**100%**|99%|
-| **Rust<br/>iterators<br/>`try_for_each`** |203%|97%|293%|78%|291%|179%|101%|**100%**|
+| **Rust<br/>iterators<br/>`for_each`** |113%|54%|164%|44%|162%|**100%**|56%|56%|
+| **Rust<br/>iterators<br/>`try_for_each`** |201%|96%|290%|78%|288%|177%|**100%**|99%|
+| **Rust<br/>iterators<br/>`for` loop** |203%|97%|293%|78%|291%|179%|101%|**100%**|
 
 Some observations:
 * To write
