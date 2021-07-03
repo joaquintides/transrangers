@@ -1,6 +1,7 @@
 ## Transrangers in Rust: a C++/Rust comparison
 * [Intro](#intro)
 * [Rust iterators for C++ programmers](#rust-iterators-for-c-programmers)
+  * [Iterator folding](#iterator-folding)
 * [pushgen](#pushgen)
 * [Performance](#performance)
 * [Conclusions](#conclusions)
@@ -9,6 +10,7 @@
 ### Rust iterators for C++ programmers
 A Rust iterator implements the following *trait* (generic interface):
 ```rust
+// std::iter::Iterator
 trait Iterator {
     type Item;
     fn next(&mut self) -> Option<Self::Item>;
@@ -32,6 +34,14 @@ Iterator adapters are then functionally equivalent to C++ ranges/Range-v3 range 
 |`map`                |`transform`        |
 |`take`               |`take`             |
 |`zip`                |`zip`              |
+#### Iterator folding
+The previous snippet can be rewritten as:
+```rust
+data.iter().filter(|x| *x % 2 == 0).map(|x| x * 3).for_each(process);
+```
+Where the regular `for` loop have been replaced by a call to the `std::iter::Iterator` *provided* method `for_each`. Provided methods have a default implementation that can be overridden by concrete iterator implementations. In the case of `for_each`, the default implementation relies on provided method `fold` (C++ `accumulate`), which in its turn relies on `next`.
+
+So, `fold` default implementation is basically pull-based, but the standard library document encourages implementers to override this with push-based code when performance can be gained. `fold` and related method `try_fold` (a variation with early termination) are then used as customization points for performance improvement. C++ ranges/Range-v3 miss this important concept and cannot escape out of their pull-based interface all across range adaptor chains. 
 ### pushgen
 \[For Andreas to write. I suggest you focus on how the original ideas in C++ translate to Rust and what the differences are (e.g. values are passed directly rather than via cursors, which makes `map` potentially more performant that in C++; how this affects the implementation of `dedup`; the usage of `ValueResult::MoreValues` and similar constants instead of booleans; etc.\]
 ### Performance
