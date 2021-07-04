@@ -87,7 +87,7 @@ fn main() {
 
 #### Values instead of cursors
 
-A major difference between transrangers and pushgen is that pushgen follows the idimatic Rust approach
+A major difference between transrangers and pushgen is that pushgen follows the idiomatic Rust approach
 and passes values and references directly. Transrangers passes a lightweight copyable cursor to all
 consumers instead.
 
