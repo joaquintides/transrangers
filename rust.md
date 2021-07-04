@@ -10,7 +10,7 @@
 ### Intro
 [pushgen](https://github.com/AndWass/pushgen) from Andreas Wass is an implementation of [transrangers](README.md) in Rust following the philosophy and idiomatic conventions of this language. We analyze the design principles of pushgen and provide some performance comparisons between transrangers in C++ and Rust, [Range-v3](https://github.com/ericniebler/range-v3) and Rust [iterators](https://doc.rust-lang.org/std/iter/index.html). 
 ### Rust iterators for C++ programmers
-A Rust iterator implements the following *trait* (generic interface):
+At its core, a Rust iterator implements the following *trait* (generic interface):
 ```rust
 // std::iter::Iterator
 trait Iterator {
@@ -41,7 +41,7 @@ The previous snippet can be rewritten as:
 ```rust
 data.iter().filter(|x| *x % 2 == 0).map(|x| x * 3).for_each(process);
 ```
-Where the regular `for` loop has been replaced by a call to the `std::iter::Iterator` *provided* method `for_each`. Provided methods have a default implementation that can be overridden by concrete iterator implementations. In the case of `for_each`, the default implementation relies on provided method `fold` (C++ `accumulate`), which in its turn relies on `next`.
+Where the regular `for` loop has been replaced by a call to the `std::iter::Iterator` *provided* method `for_each`. Provided methods have a default implementation that can be overridden by concrete iterator implementations. In the case of `for_each`, the default implementation relies on provided method `fold` (C++ `accumulate`), which in its turn, by default, relies on `next`.
 
 So, `fold` default implementation is basically pull-based, but the standard library document encourages iterator implementors to override this with push-based code when more performance can be gained. `fold` and related method `try_fold` (a variation with early termination) are then used as customization points for performance improvement. C++ ranges/Range-v3 miss this important concept and cannot escape out of their pull-based interface all across range adaptor chains. 
 ### pushgen
@@ -109,19 +109,27 @@ range.map(some_transformation).dedup().filter(some_filter);
 ```
 If `some_transformation` is expensive the cursor approach can cause a significant performance hit.
 
-Value passing also enables closures to use and modify internal state in a way that is
+Value passing also enables closures to output data based on internal state, and change this state, in a way that is
 virtually impossible in transrangers.
-`enumerate`, which simply pairs an index with a value can be implemented manually by doing
+`enumerate`, which simply pairs an index with a value can easily be implemented manually in pushgen:
 ```rust
-let mut index = 0usize;This can potentially performance benefit for the Rust approach i
+let mut index = 0usize;
 range.map(move |value| {
     let current = index;
     index += 1;
     (current, value) // Return a tuple of index and value
 });
 ```
-Doing the same in transrangers would cause the index associated with each cursor to change
-depending on which down-stream adaptors are used.
+The same code in transrangers
+```cpp
+transform([index=std::size_t(0)](auto&& value) mutable {
+    auto old = index;
+    index += 1;
+    return make_pair(old, move(value));
+}, range);
+```
+would cause the index associated with each value to change
+depending on which, if any, down-stream adaptors are used.
 
 The cursor approach is more performant for expensive-to-move types though.
 
