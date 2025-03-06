@@ -1,6 +1,6 @@
 /* Transrangers performance benchmark.
  *
- * Copyright 2021 Joaquin M Lopez Munoz.
+ * Copyright 2021-2025 Joaquin M Lopez Munoz.
  * Distributed under the Boost Software License, Version 1.0.
  * (See accompanying file LICENSE_1_0.txt or copy at
  * http://www.boost.org/LICENSE_1_0.txt)
@@ -254,7 +254,7 @@ int main()
       zip(rng6,rng6|transform(x3))|transform(sum)|filter(divisible_by_3),0);
   };
 
-  auto bench=ankerl::nanobench::Bench().minEpochIterations(50);
+  auto bench=ankerl::nanobench::Bench().minEpochIterations(500);
   
   bench.run("test1_handwritten",test1_handwritten);
   bench.run("test1_transrangers",test1_transrangers);
